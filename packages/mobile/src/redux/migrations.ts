@@ -565,4 +565,15 @@ export const migrations = {
       skipProfilePicture: REMOTE_CONFIG_VALUES_DEFAULTS.skipProfilePicture,
     },
   }),
+  43: (state: any) => ({
+    ...state,
+    account: {
+      ...state.account,
+      finclusiveRegionSupported: false,
+    },
+    app: {
+      ...state.app,
+      finclusiveUnsupportedStates: REMOTE_CONFIG_VALUES_DEFAULTS.finclusiveUnsupportedStates,
+    },
+  }),
 }

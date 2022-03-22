@@ -1162,9 +1162,13 @@ export const v43Scheme = {
     ...v42Schema._persist,
     version: 43,
   },
+  account: {
+    ...v42Schema.account,
+    finclusiveRegionSupported: false,
+  },
   app: {
     ...v42Schema.app,
-    finclusiveUnsupportedStates: { NY: 'NEW YORK', TX: 'TEXAS' },
+    finclusiveUnsupportedStates: ['NY', 'TX'],
   },
 }
 
