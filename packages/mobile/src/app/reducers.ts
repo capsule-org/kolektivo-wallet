@@ -59,6 +59,9 @@ export interface State {
   dappsWebViewEnabled: boolean
   activeDapp: Dapp | null
   skipProfilePicture: boolean
+  finclusiveUnsupportedStates: {
+    [state_abbr: string]: string
+  }
 }
 
 const initialState = {
@@ -109,6 +112,9 @@ const initialState = {
   dappsWebViewEnabled: REMOTE_CONFIG_VALUES_DEFAULTS.dappsWebViewEnabled,
   activeDapp: null,
   skipProfilePicture: REMOTE_CONFIG_VALUES_DEFAULTS.skipProfilePicture,
+  finclusiveUnsupportedStates: JSON.parse(
+    REMOTE_CONFIG_VALUES_DEFAULTS.finclusiveUnsupportedStates
+  ),
 }
 
 export const appReducer = (
@@ -228,6 +234,7 @@ export const appReducer = (
         paymentDeepLinkHandler: action.configValues.paymentDeepLinkHandler,
         dappsWebViewEnabled: action.configValues.dappsWebViewEnabled,
         skipProfilePicture: action.configValues.skipProfilePicture,
+        finclusiveUnsupportedStates: JSON.parse(action.configValues.finclusiveUnsupportedStates),
       }
     case Actions.TOGGLE_INVITE_MODAL:
       return {
