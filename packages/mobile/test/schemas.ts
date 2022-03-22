@@ -1156,6 +1156,18 @@ export const v42Schema = {
   },
 }
 
+export const v43Scheme = {
+  ...v42Schema,
+  _persist: {
+    ...v42Schema._persist,
+    version: 43,
+  },
+  app: {
+    ...v42Schema.app,
+    finclusiveUnsupportedStates: { NY: 'NEW YORK', TX: 'TEXAS' },
+  },
+}
+
 export function getLatestSchema(): Partial<RootState> {
-  return v42Schema as Partial<RootState>
+  return v43Scheme as Partial<RootState>
 }

@@ -1925,6 +1925,12 @@
                 },
                 "walletConnectV2Enabled": {
                     "type": "boolean"
+                },
+                "finclusiveUnsupportedStates": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
                 }
             },
             "required": [

@@ -26,7 +26,10 @@ import VerificationDenied from 'src/icons/VerificationDenied'
 import VerificationPending from 'src/icons/VerificationPending'
 import { navigate } from 'src/navigator/NavigationService'
 import { Screens } from 'src/navigator/Screens'
-import { linkBankAccountStepTwoEnabledSelector } from '../app/selectors'
+import {
+  finclusiveUnsupportedStatesSelector,
+  linkBankAccountStepTwoEnabledSelector,
+} from '../app/selectors'
 import { fetchFinclusiveKyc } from './actions'
 import openPlaid, { handleOnEvent } from './openPlaid'
 
@@ -127,6 +130,7 @@ export function StepOne() {
   const kycStatus = useSelector(kycStatusSelector)
   const finclusiveKycStatus = useSelector(finclusiveKycStatusSelector)
   const stepTwoEnabled = useSelector(linkBankAccountStepTwoEnabledSelector)
+  const UNSUPPORTED_REGION_ABBR = useSelector(finclusiveUnsupportedStatesSelector)
 
   const pollFinclusiveKyc = () => {
     if (kycStatus === KycStatus.Approved && finclusiveKycStatus !== FinclusiveKycStatus.Accepted) {
@@ -160,8 +164,12 @@ export function StepOne() {
       return false
     }
 
-    const UNSUPPORTED_REGION_ABBR: string[] = ['NY', 'TX']
-    if (!address.subdivisionAbbr || UNSUPPORTED_REGION_ABBR.includes(address.subdivisionAbbr)) {
+    console.log('lisa UNSUPPORTED_REGION_ABBR', UNSUPPORTED_REGION_ABBR)
+    // const UNSUPPORTED_REGION_ABBR: string[] = ['NY', 'TX']
+    if (
+      !address.subdivisionAbbr ||
+      UNSUPPORTED_REGION_ABBR.keys().includes(address.subdivisionAbbr)
+    ) {
       // Finclusive currently do not support residents of NY and TX
       return false
     }
