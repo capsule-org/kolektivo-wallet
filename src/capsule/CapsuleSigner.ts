@@ -6,6 +6,7 @@ import axios from 'axios'
 import { NativeModules } from 'react-native'
 import Logger from 'src/utils/Logger'
 import { createWallet } from '@capsule/client/src/client/client'
+import { fromRpcSig } from 'ethereumjs-util'
 
 const { CapsuleSignerModule } = NativeModules
 
@@ -118,7 +119,7 @@ export class CapsuleSigner implements Signer {
       throw new Error(`Preventing sign tx with 'gasPrice' set to '${gasPrice}'`)
     }
 
-    let protocolId = CapsuleSignerModule.getProtocolId()
+    const protocolId = CapsuleSignerModule.getProtocolId()
     Logger.debug(TAG, 'signTransaction Capsule protocolId', protocolId)
     Logger.debug(TAG, 'signTransaction Capsule tx', this.hexToBase64(encodedTx.rlpEncode))
     const signedTxBase64 = await CapsuleSignerModule.sendTransaction(
@@ -152,13 +153,14 @@ export class CapsuleSigner implements Signer {
     const res = await this.prepSignMessage(this.userId, walletId, tx)
     Logger.info(`${TAG}@signTypedData`, 'protocolId ' + res.protocolId)
     Logger.info(`${TAG}@signTypedData`, `transaction ` + tx)
-    const signatureBase64 = await CapsuleSignerModule.sendTransaction(
+    const signatureHex = await CapsuleSignerModule.sendTransaction(
       res.protocolId,
       this.keyshare,
       tx
     )
-    Logger.info(`${TAG}@signTypedData`, `signatureBase64 ` + signatureBase64)
-    return { v: 1, r: Buffer.from([]), s: Buffer.from([]) } //ethUtil.fromRpcSig(this.base64ToHex(signatureBase64))
+
+    Logger.info(`${TAG}@signTypedData`, 'SIGNATURE: ', signatureHex, fromRpcSig(signatureHex))
+    return fromRpcSig(signatureHex)
   }
 
   getNativeKey = () => this.account
