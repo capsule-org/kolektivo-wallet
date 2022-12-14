@@ -106,6 +106,8 @@
 		542981E56D26EC8415ABBA8B /* Pods_celo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_celo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		552D44B34D6F40AC8FCE6DD7 /* Kaleko105LightOblique.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Kaleko105LightOblique.ttf; path = ../fonts/Kaleko105LightOblique.ttf; sourceTree = "<group>"; };
 		66E52F1D294A014000AAA1B6 /* signer.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = signer.xcframework; path = "../../go-sdk/signer/signer.xcframework"; sourceTree = "<group>"; };
+		66E52F1F294A03E500AAA1B6 /* CapsuleSignerModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CapsuleSignerModule.h; sourceTree = "<group>"; };
+		66E52F20294A041B00AAA1B6 /* CapsuleSignerModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CapsuleSignerModule.m; sourceTree = "<group>"; };
 		6844FCD42570513C0057A74F /* QBImagePicker.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = QBImagePicker.storyboard; path = "../node_modules/react-native-image-crop-picker/ios/QBImagePicker/QBImagePicker/QBImagePicker.storyboard"; sourceTree = "<group>"; };
 		68B737FF27D7B55B0044A85E /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		7B783F0C3B38F7E684A17616 /* Pods_NotificationService.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NotificationService.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -244,6 +246,8 @@
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				66E52F1F294A03E500AAA1B6 /* CapsuleSignerModule.h */,
+				66E52F20294A041B00AAA1B6 /* CapsuleSignerModule.m */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
