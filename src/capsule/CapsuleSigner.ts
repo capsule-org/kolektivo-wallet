@@ -1,12 +1,12 @@
+import { createWallet } from '@capsule/client/src/client/client'
 import { ensureLeading0x, normalizeAddressWith0x } from '@celo/base/lib/address'
 import { CeloTx, RLPEncodedTx, Signer } from '@celo/connect'
 import { EIP712TypedData, generateTypedDataHash } from '@celo/utils/lib/sign-typed-data-utils'
 import { encodeTransaction, extractSignature, rlpEncodedTx } from '@celo/wallet-base'
 import axios from 'axios'
+import { fromRpcSig } from 'ethereumjs-util'
 import { NativeModules } from 'react-native'
 import Logger from 'src/utils/Logger'
-import { createWallet } from '@capsule/client/src/client/client'
-import { fromRpcSig } from 'ethereumjs-util'
 
 const { CapsuleSignerModule } = NativeModules
 
@@ -159,7 +159,12 @@ export class CapsuleSigner implements Signer {
       tx
     )
 
-    Logger.info(`${TAG}@signTypedData`, 'SIGNATURE: ', signatureHex, fromRpcSig(signatureHex))
+    Logger.info(
+      `${TAG}@signTypedData`,
+      'SIGNATURE: ',
+      signatureHex,
+      JSON.stringify(fromRpcSig(signatureHex))
+    )
     return fromRpcSig(signatureHex)
   }
 
