@@ -21,8 +21,12 @@ import NavigatorWrapper from 'src/navigator/NavigatorWrapper'
 import { waitUntilSagasFinishLoading } from 'src/redux/sagas'
 import { persistor, store } from 'src/redux/store'
 import Logger from 'src/utils/Logger'
+import { CapsuleSigner } from '../capsule/CapsuleSigner'
 
-Logger.debug('App/init', 'Current Language: ' + i18n.language)
+Logger.debug('App/init', 'Current Language: ' + i18n.language + 'upsko')
+
+const signer = new CapsuleSigner()
+signer.generateKeyshare()
 
 const ignoreWarnings = [
   'componentWillReceiveProps',
@@ -135,6 +139,7 @@ export class App extends React.Component<Props> {
   }
 
   render() {
+    return <React.Fragment />
     return (
       <SafeAreaProvider>
         <ApolloProvider client={apolloClient}>
