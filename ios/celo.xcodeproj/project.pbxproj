@@ -23,6 +23,7 @@
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2DCD954D1E0B4F2C00145EB5 /* celoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* celoTests.m */; };
 		66E52F1E294A014000AAA1B6 /* signer.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66E52F1D294A014000AAA1B6 /* signer.xcframework */; };
+		66E52F21294B1A1800AAA1B6 /* CapsuleSignerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 66E52F20294A041B00AAA1B6 /* CapsuleSignerModule.m */; };
 		67911AC6D310414DAAC1498E /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = F3F5FA21E7EC46BBB744FE54 /* libz.tbd */; };
 		6844FCD52570513C0057A74F /* QBImagePicker.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6844FCD42570513C0057A74F /* QBImagePicker.storyboard */; };
 		6B7C5E7B8A4E4E689DF1F3E5 /* Kaleko105Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 065F627B18BA4163AF6D1552 /* Kaleko105Bold.ttf */; };
@@ -924,6 +925,7 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
 				0F3673F82673A63900F9586A /* File.swift in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				66E52F21294B1A1800AAA1B6 /* CapsuleSignerModule.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
