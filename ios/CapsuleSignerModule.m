@@ -25,21 +25,63 @@ static NSString *serverUrl = @"http://mpcnetworkloadbalancer-348316826.us-west-1
   return dispatch_get_main_queue();
 }
 
+RCT_EXPORT_MODULE();
 
+// Get Address
+- (void) invokeSignerGetAddress:(NSDictionary*)params
+{
+  NSString* serializedSigner = [params objectForKey:@"serializedSigner"];
+  RCTPromiseResolveBlock resolve = [params objectForKey:@"resolve"];
+  NSString* res = SignerGetAddress(serializedSigner);
+  resolve(res);
+}
 
 RCT_EXPORT_METHOD(getAddress:(NSString *)serializedSigner
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+  NSDictionary* params = [NSDictionary dictionaryWithObjectsAndKeys:
+                          resolve, @"resolve",
+                          serializedSigner, @"serializedSigner",
+                          nil];
+  [self performSelectorInBackground:@selector(invokeSignerGetAddress:)
+                         withObject:params];
   NSString* res = SignerGetAddress(serializedSigner);
   resolve(res);
 }
 
+// Send Transaction
+- (void) invokeSignerSendTransaction:(NSDictionary*)params
+{
+  NSString* serializedSigner = [params objectForKey:@"serializedSigner"];
+  NSString* transaction = [params objectForKey:@"transaction"];
+  NSString* protocolId = [params objectForKey:@"protocolId"];
+  
+  RCTPromiseResolveBlock resolve = [params objectForKey:@"resolve"];
+  NSString* res = SignerSendTransaction(serverUrl, serializedSigner, transaction, protocolId);
+  resolve(res);
+}
 
+RCT_EXPORT_METHOD(sendTransaction:(NSString*)protocolId
+                  serializedSigner:(NSString *)serializedSigner
+                  transaction:(NSString *)transaction
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXPORT_MODULE();
+{
+  NSDictionary* params = [NSDictionary dictionaryWithObjectsAndKeys:
+                          resolve, @"resolve",
+                          serializedSigner, @"serializedSigner",
+                          transaction, @"transaction",
+                          protocolId, @"protocolId",
+                          nil];
+  [self performSelectorInBackground:@selector(invokeSignerGetAddress:)
+                         withObject:params];
+  NSString* res = SignerGetAddress(serializedSigner);
+  resolve(res);
+}
 
-
+// Create Account
 - (void) invokeSignerCreateAccount:(NSDictionary*)params
 {
   NSString* protocolId = [params objectForKey:@"protocolId"];
