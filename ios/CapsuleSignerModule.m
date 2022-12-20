@@ -32,6 +32,7 @@ RCT_EXPORT_MODULE();
 {
   NSString* serializedSigner = [params objectForKey:@"serializedSigner"];
   RCTPromiseResolveBlock resolve = [params objectForKey:@"resolve"];
+
   NSString* res = SignerGetAddress(serializedSigner);
   resolve(res);
 }
@@ -46,8 +47,6 @@ RCT_EXPORT_METHOD(getAddress:(NSString *)serializedSigner
                           nil];
   [self performSelectorInBackground:@selector(invokeSignerGetAddress:)
                          withObject:params];
-  NSString* res = SignerGetAddress(serializedSigner);
-  resolve(res);
 }
 
 // Send Transaction
@@ -56,8 +55,8 @@ RCT_EXPORT_METHOD(getAddress:(NSString *)serializedSigner
   NSString* serializedSigner = [params objectForKey:@"serializedSigner"];
   NSString* transaction = [params objectForKey:@"transaction"];
   NSString* protocolId = [params objectForKey:@"protocolId"];
-  
   RCTPromiseResolveBlock resolve = [params objectForKey:@"resolve"];
+  
   NSString* res = SignerSendTransaction(serverUrl, serializedSigner, transaction, protocolId);
   resolve(res);
 }
@@ -75,10 +74,8 @@ RCT_EXPORT_METHOD(sendTransaction:(NSString*)protocolId
                           transaction, @"transaction",
                           protocolId, @"protocolId",
                           nil];
-  [self performSelectorInBackground:@selector(invokeSignerGetAddress:)
+  [self performSelectorInBackground:@selector(invokeSignerSendTransaction:)
                          withObject:params];
-  NSString* res = SignerGetAddress(serializedSigner);
-  resolve(res);
 }
 
 // Create Account
