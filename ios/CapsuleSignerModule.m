@@ -8,7 +8,6 @@
 #import "CapsuleSignerModule.h"
 #import <Signer/Signer.h>
 
-
 static NSString *configBase = @"{\"ServerUrl\": \"%@\", \"WalletId\": \"%@\", \"Id\":\"%@\", \"Ids\":%@, \"Threshold\":1}";
 
 static NSString *ids = @"[\"USER\",\"CAPSULE\",\"RECOVERY\"]";
@@ -17,6 +16,24 @@ static NSString *serverUrl = @"http://mpcnetworkloadbalancer-348316826.us-west-1
 
 
 @implementation CapsuleSignerModule
++ (BOOL)requiresMainQueueSetup
+{
+  return YES;
+}
+
+- (dispatch_queue_t)methodQueue {
+  return dispatch_get_main_queue();
+}
+
+
+
+RCT_EXPORT_METHOD(getAddress:(NSString *)serializedSigner
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  NSString* res = SignerGetAddress(serializedSigner);
+  resolve(res);
+}
 
 
 
@@ -28,10 +45,8 @@ RCT_EXPORT_MODULE();
   NSString* protocolId = [params objectForKey:@"protocolId"];
   NSString* signerConfig = [params objectForKey:@"signerConfig"];
   RCTPromiseResolveBlock resolve = [params objectForKey:@"resolve"];
-  NSLog(@"invoked signing");
   NSString* res = SignerCreateAccount(serverUrl,signerConfig, protocolId);
   
-  NSLog(@"invoked signing2", res);
   resolve(res);
 }
 
@@ -41,9 +56,7 @@ RCT_EXPORT_METHOD(createAccount:(NSString *)walletId
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-  NSLog(@"DUPA");
   NSString* signerConfig = [NSString stringWithFormat: configBase, serverUrl, walletId, userId, ids];
-  NSLog(signerConfig);
   NSDictionary* params = [NSDictionary dictionaryWithObjectsAndKeys:
                           protocolId, @"protocolId",
                           resolve, @"resolve",
@@ -51,8 +64,6 @@ RCT_EXPORT_METHOD(createAccount:(NSString *)walletId
                           nil];
   [self performSelectorInBackground:@selector(invokeSignerCreateAccount:)
                          withObject:params];
-  
-  
 }
 
 @end
