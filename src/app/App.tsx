@@ -24,9 +24,6 @@ import Logger from 'src/utils/Logger'
 
 Logger.debug('App/init', 'Current Language: ' + i18n.language)
 
-// const signer = new CapsuleSigner()
-// signer.generateKeyshare()
-
 const ignoreWarnings = [
   'componentWillReceiveProps',
   'Remote debugger', // To avoid "Remote debugger in background tab" warning
