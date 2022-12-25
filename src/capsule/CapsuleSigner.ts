@@ -6,6 +6,7 @@ import { encodeTransaction, extractSignature, rlpEncodedTx } from '@celo/wallet-
 import { fromRpcSig } from 'ethereumjs-util'
 import { NativeModules } from 'react-native'
 import Logger from 'src/utils/Logger'
+import { PrivateKeyStorage, PrivateKeyStorageDefault } from './PrivateKeyStorage'
 
 const { CapsuleSignerModule } = NativeModules
 
@@ -27,12 +28,13 @@ const TAG = 'geth/CapsuleSigner'
  */
 export class CapsuleSigner implements Signer {
   private account: string = ''
-  private keyshare: string | undefined = undefined
   private userId = 'fc347001-7ec1-4977-a109-e838b5f01c0b'
+  private keyshareStorage: PrivateKeyStorage | undefined
 
   async loadKeyshare(keyshare: string) {
-    this.keyshare = keyshare
-    await this.setAccount()
+    await this.setAccount(keyshare)
+    this.keyshareStorage = new PrivateKeyStorageDefault(this.account)
+    this.keyshareStorage.setPrivateKey(keyshare)
   }
 
   async generateKeyshare(): Promise<string> {
@@ -48,8 +50,6 @@ export class CapsuleSigner implements Signer {
     const recoveryPrivateKeyShare = keyshares[1]
     Logger.debug(TAG, 'CAPSULE KEYGEN ', userPrivateKeyshare)
     Logger.debug(TAG, 'CAPSULE KEYGEN ', recoveryPrivateKeyShare)
-    this.keyshare = userPrivateKeyshare
-    await this.setAccount()
     Logger.debug(TAG, 'CAPSULE account address ', this.account)
     return userPrivateKeyshare
   }
@@ -74,16 +74,16 @@ export class CapsuleSigner implements Signer {
   }
 
   getKeyshare(): string | undefined {
-    return this.keyshare
+    return this.keyshareStorage?.getPrivateKey()
   }
 
-  async setAccount() {
-    const address = await CapsuleSignerModule.getAddress(this.keyshare)
+  async setAccount(keyshare: string) {
+    const address = await CapsuleSignerModule.getAddress(keyshare)
     this.account = normalizeAddressWith0x(address)
   }
 
   async signRawTransaction(tx: CeloTx) {
-    if (!this.keyshare || !this.account) {
+    if (!this.keyshareStorage?.getPrivateKey() || !this.account) {
       throw new Error(
         'Cannot signRawTransaction from CapsuleSigner before keygeneration or initialization'
       )
@@ -113,7 +113,7 @@ export class CapsuleSigner implements Signer {
     Logger.debug(TAG, 'signTransaction Capsule protocolId', protocolId)
     Logger.debug(TAG, 'signTransaction Capsule tx', this.hexToBase64(encodedTx.rlpEncode))
     const signedTxBase64 = await CapsuleSignerModule.sendTransaction(
-      this.keyshare,
+      this.keyshareStorage?.getPrivateKey(),
       protocolId,
       this.hexToBase64(encodedTx.rlpEncode)
     )
@@ -145,7 +145,7 @@ export class CapsuleSigner implements Signer {
     Logger.info(`${TAG}@signTypedData`, `transaction ` + tx)
     const signatureHex = await CapsuleSignerModule.sendTransaction(
       res.protocolId,
-      this.keyshare,
+      this.keyshareStorage?.getPrivateKey(),
       tx
     )
 
