@@ -6,18 +6,27 @@ import * as ethUtil from 'ethereumjs-util'
 import { ErrorMessages } from 'src/app/ErrorMessages'
 import { CapsuleSigner } from 'src/capsule/CapsuleSigner'
 import Logger from 'src/utils/Logger'
+import { ReactNativeSignersStorage } from './SignersStorage'
 
 const TAG = 'geth/CapsuleWallet'
 
 export class CapsuleWallet extends RemoteWallet<CapsuleSigner> implements UnlockableWallet {
+  private signersStorage = new ReactNativeSignersStorage()
   // Called on init to load existing wallets
   // Not applicable for CapsuleWallet
   async loadAccountSigners(): Promise<Map<string, CapsuleSigner>> {
-    return new Map<string, CapsuleSigner>()
+    const addressToSigner = new Map<string, CapsuleSigner>()
+    const nativeKeys = await this.signersStorage.getAccounts()
+    for (const nativeKey of nativeKeys) {
+      const signer = new CapsuleSigner()
+      signer.setNativeKey(nativeKey)
+      addressToSigner.set(nativeKey, signer)
+    }
+    return addressToSigner
   }
 
-  getKeyshare(address: string): string {
-    const keyshare = this.getSigner(address).getKeyshare()
+  async getKeyshare(address: string): Promise<string> {
+    const keyshare = await this.getSigner(address).getKeyshare()
     if (!keyshare) {
       Logger.error(`${TAG}@addAccount`, `Missing private key`)
       throw new Error(ErrorMessages.CAPSULE_UNEXPECTED_ADDRESS)
@@ -25,17 +34,16 @@ export class CapsuleWallet extends RemoteWallet<CapsuleSigner> implements Unlock
     return keyshare!
   }
 
-  async addAccount(privateKey: string): Promise<string> {
-    console.log('setting up privateKey', privateKey)
+  async addAccount(privateKey?: string): Promise<string> {
     const signer = new CapsuleSigner()
     if (!privateKey) {
       Logger.info(`${TAG}@addAccount`, `Creating a new account`)
       privateKey = await signer.generateKeyshare()
       Logger.info(`${TAG}@addAccount`, privateKey)
-      signer.loadKeyshare(privateKey)
+      await signer.loadKeyshare(privateKey)
     } else {
       Logger.info(`${TAG}@addAccount`, `Adding a previously created account`)
-      signer.loadKeyshare(privateKey)
+      await signer.loadKeyshare(privateKey)
     }
 
     if (this.hasAccount(signer.getNativeKey())) {
@@ -44,7 +52,9 @@ export class CapsuleWallet extends RemoteWallet<CapsuleSigner> implements Unlock
 
     this.addSigner(signer.getNativeKey(), signer)
     Logger.info(`${TAG}@addAccount`, `Account added`)
-    return signer.getNativeKey()
+    const nativeKey = signer.getNativeKey()
+    await this.signersStorage.addAccount(nativeKey)
+    return nativeKey
   }
 
   // TODO generate a session token for the wallet

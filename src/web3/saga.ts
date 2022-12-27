@@ -308,8 +308,9 @@ export function* createAndAssignCapsuleAccount() {
     let account = ''
     try {
       account = yield call([wallet, wallet.addAccount])
-      const privateKeyShare: string = wallet.getKeyshare(account)
-      yield call(storeCapsuleKeyShare, privateKeyShare, account)
+      void wallet.getKeyshare(account).then((privateKeyShare) => {
+        void storeCapsuleKeyShare(privateKeyShare, account)
+      })
     } catch (e) {
       if (e.message === ErrorMessages.CAPSULE_ACCOUNT_ALREADY_EXISTS) {
         Logger.warn(TAG + '@createAndAssignCapsuleAccount', 'Attempted to import same account')

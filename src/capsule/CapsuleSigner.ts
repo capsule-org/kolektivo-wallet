@@ -6,7 +6,7 @@ import { encodeTransaction, extractSignature, rlpEncodedTx } from '@celo/wallet-
 import { fromRpcSig } from 'ethereumjs-util'
 import { NativeModules } from 'react-native'
 import Logger from 'src/utils/Logger'
-import { PrivateKeyStorage, PrivateKeyStorageDefault } from './PrivateKeyStorage'
+import { PrivateKeyStorage, PrivateKeyStorageReactNative } from './PrivateKeyStorage'
 
 const { CapsuleSignerModule } = NativeModules
 
@@ -31,10 +31,16 @@ export class CapsuleSigner implements Signer {
   private userId = 'fc347001-7ec1-4977-a109-e838b5f01c0b'
   private keyshareStorage: PrivateKeyStorage | undefined
 
+  static restoreFromAccount(account: string) {
+    const signer = new CapsuleSigner()
+    signer.account = account
+    return signer
+  }
+
   async loadKeyshare(keyshare: string) {
     await this.setAccount(keyshare)
-    this.keyshareStorage = new PrivateKeyStorageDefault(this.account)
-    this.keyshareStorage.setPrivateKey(keyshare)
+    this.keyshareStorage = new PrivateKeyStorageReactNative(this.account)
+    await this.keyshareStorage.setPrivateKey(keyshare)
   }
 
   async generateKeyshare(): Promise<string> {
@@ -56,8 +62,7 @@ export class CapsuleSigner implements Signer {
 
   private async getWallet(userId: string, address: string): Promise<any> {
     const response = await userManagementClient.getWallets(userId)
-    for (let i = 0; i < response.wallets.length; i++) {
-      const wallet = response.wallets[i]
+    for (const wallet of response.data.wallets) {
       if (wallet.address && wallet.address.toLowerCase() == address.toLowerCase()) {
         return wallet.id
       }
@@ -73,8 +78,12 @@ export class CapsuleSigner implements Signer {
     }
   }
 
-  getKeyshare(): string | undefined {
-    return this.keyshareStorage?.getPrivateKey()
+  async getKeyshare(): Promise<string | undefined> {
+    return await this.keyshareStorage?.getPrivateKey()
+  }
+
+  public setNativeKey(nativeKey: string) {
+    this.account = nativeKey
   }
 
   async setAccount(keyshare: string) {
@@ -145,7 +154,7 @@ export class CapsuleSigner implements Signer {
     Logger.info(`${TAG}@signTypedData`, `transaction ` + tx)
     const signatureHex = await CapsuleSignerModule.sendTransaction(
       res.protocolId,
-      this.keyshareStorage?.getPrivateKey(),
+      await this.keyshareStorage?.getPrivateKey(),
       tx
     )
 
