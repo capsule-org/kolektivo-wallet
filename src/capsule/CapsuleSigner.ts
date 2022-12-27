@@ -31,11 +31,6 @@ export abstract class CapsuleBaseSigner implements Signer {
   private userId = 'fc347001-7ec1-4977-a109-e838b5f01c0b'
   private keyshareStorage: PrivateKeyStorage | undefined
   protected abstract getPrivateKeyStorage(account: string): PrivateKeyStorage
-  // static restoreFromAccount(account: string) {
-  //   const signer = new CapsuleSigner()
-  //   signer.account = account
-  // return signer
-  // }
 
   async loadKeyshare(keyshare: string) {
     await this.setAccount(keyshare)
