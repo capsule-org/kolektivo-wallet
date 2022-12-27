@@ -16,8 +16,7 @@ export abstract class CapsuleBaseWallet
   protected abstract getSignersStorage(): SignersStorage
   protected abstract getCapsuleSigner(): CapsuleBaseSigner
   private signersStorage = this.getSignersStorage()
-  // Called on init to load existing wallets
-  // Not applicable for CapsuleWallet
+
   async loadAccountSigners(): Promise<Map<string, CapsuleBaseSigner>> {
     const addressToSigner = new Map<string, CapsuleBaseSigner>()
     const nativeKeys = await this.signersStorage.getAccounts()
