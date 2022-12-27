@@ -18,10 +18,7 @@ const TAG = '@CAPSULE/TODO-KEYCHAIN'
 export class PrivateKeyStorageReactNative extends PrivateKeyStorage {
   async getPrivateKey(): Promise<string> {
     const storageString = await AsyncStorage.getItem(TAG)
-    console.log(storageString)
     const storage = storageString ? JSON.parse(storageString) : {}
-    console.log('GETTING STORAGE', storage[this.walletId], this.walletId, storage)
-
     return storage[this.walletId] as string
   }
 

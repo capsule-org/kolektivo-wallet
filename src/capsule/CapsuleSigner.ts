@@ -85,7 +85,6 @@ export abstract class CapsuleBaseSigner implements Signer {
   async setAccount(keyshare: string) {
     const address = await CapsuleSignerModule.getAddress(keyshare)
     this.account = normalizeAddressWith0x(address)
-    console.log('SET ACCOUNT KAKS')
   }
 
   async signRawTransaction(tx: CeloTx) {
@@ -150,7 +149,6 @@ export abstract class CapsuleBaseSigner implements Signer {
     Logger.info(`${TAG}@signTypedData`, 'protocolId ' + res.protocolId)
     Logger.info(`${TAG}@signTypedData`, `transaction ` + tx)
     const keyshare = await this.keyshareStorage?.getPrivateKey()
-    console.log({ keyshare }, this.account)
     const signatureHex = await CapsuleSignerModule.sendTransaction(res.protocolId, keyshare, tx)
 
     Logger.info(
