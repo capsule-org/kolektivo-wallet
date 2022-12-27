@@ -26,20 +26,20 @@ const TAG = 'geth/CapsuleSigner'
 /**
  * Implements the signer interface using the CapsuleSignerModule
  */
-export class CapsuleSigner implements Signer {
+export abstract class CapsuleBaseSigner implements Signer {
   private account: string = ''
   private userId = 'fc347001-7ec1-4977-a109-e838b5f01c0b'
   private keyshareStorage: PrivateKeyStorage | undefined
-
-  static restoreFromAccount(account: string) {
-    const signer = new CapsuleSigner()
-    signer.account = account
-    return signer
-  }
+  protected abstract getPrivateKeyStorage(account: string): PrivateKeyStorage
+  // static restoreFromAccount(account: string) {
+  //   const signer = new CapsuleSigner()
+  //   signer.account = account
+  // return signer
+  // }
 
   async loadKeyshare(keyshare: string) {
     await this.setAccount(keyshare)
-    this.keyshareStorage = new PrivateKeyStorageReactNative(this.account)
+    this.keyshareStorage = this.getPrivateKeyStorage(this.account)
     await this.keyshareStorage.setPrivateKey(keyshare)
   }
 
@@ -84,11 +84,13 @@ export class CapsuleSigner implements Signer {
 
   public setNativeKey(nativeKey: string) {
     this.account = nativeKey
+    this.keyshareStorage = this.getPrivateKeyStorage(this.account)
   }
 
   async setAccount(keyshare: string) {
     const address = await CapsuleSignerModule.getAddress(keyshare)
     this.account = normalizeAddressWith0x(address)
+    console.log('SET ACCOUNT KAKS')
   }
 
   async signRawTransaction(tx: CeloTx) {
@@ -152,11 +154,9 @@ export class CapsuleSigner implements Signer {
     const res = await this.prepSignMessage(this.userId, walletId, tx)
     Logger.info(`${TAG}@signTypedData`, 'protocolId ' + res.protocolId)
     Logger.info(`${TAG}@signTypedData`, `transaction ` + tx)
-    const signatureHex = await CapsuleSignerModule.sendTransaction(
-      res.protocolId,
-      await this.keyshareStorage?.getPrivateKey(),
-      tx
-    )
+    const keyshare = await this.keyshareStorage?.getPrivateKey()
+    console.log({ keyshare }, this.account)
+    const signatureHex = await CapsuleSignerModule.sendTransaction(res.protocolId, keyshare, tx)
 
     Logger.info(
       `${TAG}@signTypedData`,
@@ -185,5 +185,11 @@ export class CapsuleSigner implements Signer {
 
   base64ToHex(base64: string) {
     return ensureLeading0x(Buffer.from(base64, 'base64').toString('hex'))
+  }
+}
+
+export class CapsuleReactNativeSigner extends CapsuleBaseSigner {
+  protected getPrivateKeyStorage(account: string): PrivateKeyStorage {
+    return new PrivateKeyStorageReactNative(account)
   }
 }

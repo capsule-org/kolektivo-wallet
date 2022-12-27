@@ -21,6 +21,8 @@ import Logger from 'src/utils/Logger'
 import { getHttpProvider, getIpcProvider } from 'src/web3/providers'
 import { fornoSelector } from 'src/web3/selectors'
 import Web3 from 'web3'
+import { EIP712TypedData } from '@celo/utils/lib/sign-typed-data-utils'
+import { ReactNativeSignersStorage } from '../capsule/SignersStorage'
 
 const TAG = 'web3/contracts'
 // const KIT_INIT_RETRY_DELAY = 2000
@@ -32,12 +34,42 @@ let contractKit: ContractKit | undefined
 
 const initContractKitLock = new Lock()
 
+// @ts-ignore
+async function testSigning(newWallet: CapsuleWallet) {
+  Logger.debug('TEST SIGNING')
+  const payload: EIP712TypedData = {
+    types: {
+      EIP712Domain: [
+        { name: 'name', type: 'string' },
+        { name: 'version', type: 'string' },
+        { name: 'chainId', type: 'uint256' },
+      ],
+      Message: [{ name: 'content', type: 'string' }],
+    },
+    domain: {
+      name: 'Valora',
+      version: '1',
+      chainId: 17,
+    },
+    message: {
+      content: 'valora auth message',
+    },
+    primaryType: 'Message',
+  }
+  const storage = new ReactNativeSignersStorage()
+  const accounts = await storage.getAccounts()
+  const address = accounts[0]
+  const signedTypedMessage = await newWallet.signTypedData(address, payload)
+  Logger.debug(signedTypedMessage)
+}
+
 async function initWallet() {
   ValoraAnalytics.track(ContractKitEvents.init_contractkit_get_wallet_start)
   const newWallet = new CapsuleWallet()
   Logger.debug(TAG + '@initWallet', 'Created Wallet')
   ValoraAnalytics.track(ContractKitEvents.init_contractkit_get_wallet_finish)
   await newWallet.init()
+  // await testSigning(newWallet)
   ValoraAnalytics.track(ContractKitEvents.init_contractkit_init_wallet_finish)
   return newWallet
 }

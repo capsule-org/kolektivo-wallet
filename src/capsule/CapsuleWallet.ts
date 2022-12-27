@@ -4,21 +4,25 @@ import { UnlockableWallet } from '@celo/wallet-base'
 import { RemoteWallet } from '@celo/wallet-remote'
 import * as ethUtil from 'ethereumjs-util'
 import { ErrorMessages } from 'src/app/ErrorMessages'
-import { CapsuleSigner } from 'src/capsule/CapsuleSigner'
+import { CapsuleBaseSigner, CapsuleReactNativeSigner } from 'src/capsule/CapsuleSigner'
 import Logger from 'src/utils/Logger'
-import { ReactNativeSignersStorage } from './SignersStorage'
+import { ReactNativeSignersStorage, SignersStorage } from './SignersStorage'
 
 const TAG = 'geth/CapsuleWallet'
 
-export class CapsuleWallet extends RemoteWallet<CapsuleSigner> implements UnlockableWallet {
-  private signersStorage = new ReactNativeSignersStorage()
+export abstract class CapsuleBaseWallet
+  extends RemoteWallet<CapsuleBaseSigner>
+  implements UnlockableWallet {
+  protected abstract getSignersStorage(): SignersStorage
+  protected abstract getCapsuleSigner(): CapsuleBaseSigner
+  private signersStorage = this.getSignersStorage()
   // Called on init to load existing wallets
   // Not applicable for CapsuleWallet
-  async loadAccountSigners(): Promise<Map<string, CapsuleSigner>> {
-    const addressToSigner = new Map<string, CapsuleSigner>()
+  async loadAccountSigners(): Promise<Map<string, CapsuleBaseSigner>> {
+    const addressToSigner = new Map<string, CapsuleBaseSigner>()
     const nativeKeys = await this.signersStorage.getAccounts()
     for (const nativeKey of nativeKeys) {
-      const signer = new CapsuleSigner()
+      const signer = this.getCapsuleSigner()
       signer.setNativeKey(nativeKey)
       addressToSigner.set(nativeKey, signer)
     }
@@ -35,7 +39,7 @@ export class CapsuleWallet extends RemoteWallet<CapsuleSigner> implements Unlock
   }
 
   async addAccount(privateKey?: string): Promise<string> {
-    const signer = new CapsuleSigner()
+    const signer = this.getCapsuleSigner()
     if (!privateKey) {
       Logger.info(`${TAG}@addAccount`, `Creating a new account`)
       privateKey = await signer.generateKeyshare()
@@ -97,3 +101,15 @@ export class CapsuleWallet extends RemoteWallet<CapsuleSigner> implements Unlock
     return ethUtil.toRpcSig(v, r, s)
   }
 }
+
+class CapsuleReactNativeWallet extends CapsuleBaseWallet {
+  getCapsuleSigner(): CapsuleBaseSigner {
+    return new CapsuleReactNativeSigner()
+  }
+
+  getSignersStorage(): SignersStorage {
+    return new ReactNativeSignersStorage()
+  }
+}
+
+export { CapsuleReactNativeWallet as CapsuleWallet }
