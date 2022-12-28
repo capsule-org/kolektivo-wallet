@@ -6,10 +6,43 @@ import * as ethUtil from 'ethereumjs-util'
 import { ErrorMessages } from 'src/app/ErrorMessages'
 import { CapsuleSigner } from 'src/capsule/CapsuleSigner'
 import Logger from 'src/utils/Logger'
+import { ChallengeStorageDefault } from './ChallengeStorage'
+import userManagementClient from './UserManagementClient'
 
 const TAG = 'geth/CapsuleWallet'
 
 export class CapsuleWallet extends RemoteWallet<CapsuleSigner> implements UnlockableWallet {
+  // TODO remove me
+  private userId = 'c67b0766-f339-4d86-9c82-fe2410b28460'
+  private biometricStorage = new ChallengeStorageDefault(this.userId)
+
+  public async setBiometrics() {
+    return await userManagementClient.addBiometrics(this.userId, {
+      publicKey: await this.biometricStorage.getPublicKey(),
+    })
+  }
+
+  private cookie: string | undefined
+
+  public async refreshBiometricsIfNeeded() {
+    if (typeof this.cookie === 'string') {
+      // this is how cookie is represented. We do parsing "manually" to avoid employing additional libs
+      const expDate = this.cookie.split(';')[2].split('=')[1]
+      const date = new Date(expDate)
+      const isValid = date.valueOf() - Date.now() > 30000 // 30 seconds threshold
+      if (isValid) {
+        return
+      }
+    }
+    const challenge = await userManagementClient.getBiometricsChallenge(this.userId)
+    const message = challenge.data.challenge
+    const signature = await this.biometricStorage.signChallenge(message)
+    const response = await userManagementClient.verifyBiometricsChallenge(this.userId, {
+      signature,
+    })
+    this.cookie = response.headers['set-cookie'][0]
+  }
+
   // Called on init to load existing wallets
   // Not applicable for CapsuleWallet
   async loadAccountSigners(): Promise<Map<string, CapsuleSigner>> {
