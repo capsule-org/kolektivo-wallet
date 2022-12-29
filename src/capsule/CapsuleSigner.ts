@@ -6,7 +6,6 @@ import { fromRpcSig } from 'ethereumjs-util'
 import { NativeModules } from 'react-native'
 import Logger from 'src/utils/Logger'
 import userManagementClient from './UserManagementClient'
-// import secp256r1 from "secp256r1"
 
 const { CapsuleSignerModule } = NativeModules
 
