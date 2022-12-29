@@ -7,6 +7,7 @@ import { ErrorMessages } from 'src/app/ErrorMessages'
 import { CapsuleBaseSigner, CapsuleReactNativeSigner } from 'src/capsule/CapsuleSigner'
 import Logger from 'src/utils/Logger'
 import { ReactNativeSignersStorage, SignersStorage } from './SignersStorage'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const TAG = 'geth/CapsuleWallet'
 
@@ -14,14 +15,16 @@ export abstract class CapsuleBaseWallet
   extends RemoteWallet<CapsuleBaseSigner>
   implements UnlockableWallet {
   protected abstract getSignersStorage(): SignersStorage
-  protected abstract getCapsuleSigner(): CapsuleBaseSigner
+  protected abstract getCapsuleSigner(userId: string): CapsuleBaseSigner
+  protected abstract getUserId(): Promise<string>
   private signersStorage = this.getSignersStorage()
 
   async loadAccountSigners(): Promise<Map<string, CapsuleBaseSigner>> {
     const addressToSigner = new Map<string, CapsuleBaseSigner>()
     const nativeKeys = await this.signersStorage.getAccounts()
     for (const nativeKey of nativeKeys) {
-      const signer = this.getCapsuleSigner()
+      const userId = await this.getUserId()
+      const signer = this.getCapsuleSigner(userId)
       signer.setNativeKey(nativeKey)
       addressToSigner.set(nativeKey, signer)
     }
@@ -38,7 +41,8 @@ export abstract class CapsuleBaseWallet
   }
 
   async addAccount(privateKey?: string): Promise<string> {
-    const signer = this.getCapsuleSigner()
+    const userId = await this.getUserId()
+    const signer = this.getCapsuleSigner(userId)
     if (!privateKey) {
       Logger.info(`${TAG}@addAccount`, `Creating a new account`)
       privateKey = await signer.generateKeyshare()
@@ -101,13 +105,19 @@ export abstract class CapsuleBaseWallet
   }
 }
 
+export const USER_ID_TAG = '@CAPSULE/USER_ID'
+
 class CapsuleReactNativeWallet extends CapsuleBaseWallet {
-  getCapsuleSigner(): CapsuleBaseSigner {
-    return new CapsuleReactNativeSigner()
+  getCapsuleSigner(userId: string): CapsuleBaseSigner {
+    return new CapsuleReactNativeSigner(userId)
   }
 
   getSignersStorage(): SignersStorage {
     return new ReactNativeSignersStorage()
+  }
+
+  async getUserId(): Promise<string> {
+    return (await AsyncStorage.getItem(USER_ID_TAG)) as string
   }
 }
 

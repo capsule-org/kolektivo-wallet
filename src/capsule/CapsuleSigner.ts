@@ -1,4 +1,3 @@
-import Client from '@capsule/client'
 import { ensureLeading0x, normalizeAddressWith0x } from '@celo/base/lib/address'
 import { CeloTx, RLPEncodedTx, Signer } from '@celo/connect'
 import { EIP712TypedData, generateTypedDataHash } from '@celo/utils/lib/sign-typed-data-utils'
@@ -7,12 +6,9 @@ import { fromRpcSig } from 'ethereumjs-util'
 import { NativeModules } from 'react-native'
 import Logger from 'src/utils/Logger'
 import { PrivateKeyStorage, PrivateKeyStorageReactNative } from './PrivateKeyStorage'
+import userManagementClient from './UserManagementClient'
 
 const { CapsuleSignerModule } = NativeModules
-
-const userManagementClient = new Client({
-  userManagementHost: 'http://usermanagementloadbalancer-461184073.us-west-1.elb.amazonaws.com/',
-})
 
 // userManagementClient.createUser({
 //   email: "michal+911@usecapsule.com"
@@ -28,7 +24,7 @@ const TAG = 'geth/CapsuleSigner'
  */
 export abstract class CapsuleBaseSigner implements Signer {
   private account: string = ''
-  private userId = 'fc347001-7ec1-4977-a109-e838b5f01c0b'
+  private readonly userId: string
   private keyshareStorage: PrivateKeyStorage | undefined
   protected abstract getPrivateKeyStorage(account: string): PrivateKeyStorage
 
@@ -36,6 +32,10 @@ export abstract class CapsuleBaseSigner implements Signer {
     await this.setAccount(keyshare)
     this.keyshareStorage = this.getPrivateKeyStorage(this.account)
     await this.keyshareStorage.setPrivateKey(keyshare)
+  }
+
+  constructor(userId: string) {
+    this.userId = userId
   }
 
   async generateKeyshare(): Promise<string> {
