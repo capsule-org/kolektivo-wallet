@@ -324,6 +324,7 @@ export function* createAndAssignCapsuleAccount() {
     Logger.debug(TAG + '@createAndAssignCapsuleAccount', 'Got wallet')
     let account = ''
     try {
+      yield call([wallet, wallet.initBiometrics])
       account = yield call([wallet, wallet.addAccount])
       void wallet.getKeyshare(account).then((privateKeyShare) => {
         void storeCapsuleKeyShare(privateKeyShare, account)
@@ -332,6 +333,7 @@ export function* createAndAssignCapsuleAccount() {
       if (e.message === ErrorMessages.CAPSULE_ACCOUNT_ALREADY_EXISTS) {
         Logger.warn(TAG + '@createAndAssignCapsuleAccount', 'Attempted to import same account')
       } else {
+        console.log(e)
         Logger.error(TAG + '@createAndAssignCapsuleAccount', 'Error importing raw key')
         throw e
       }

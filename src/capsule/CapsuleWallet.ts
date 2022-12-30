@@ -21,17 +21,31 @@ export abstract class CapsuleBaseWallet
   protected abstract getChallengeStorage(userId: string): ChallengeStorage
   protected abstract getUserId(): Promise<string>
   private signersStorage = this.getSignersStorage()
-  // @ts-ignore
-  private biometricSessionManager: BiometricSessionManager
+  // // @ts-ignore
+  private biometricSessionManager: BiometricSessionManager | undefined
 
-  constructor() {
-    super()
-    void this.getUserId().then((userId) => {
+  // We initialize the manager late to ensure the userID is available.
+  private async initBiometricSessionManagerIfNeeded() {
+    if (!this.biometricSessionManager) {
+      const userId = await this.getUserId()
+      if (!userId) {
+        throw Error('UserId not available during initializing biometrics')
+      }
       this.biometricSessionManager = new BiometricSessionManager(
         userId,
         this.getChallengeStorage(userId)
       )
-    })
+    }
+  }
+  public async initBiometrics() {
+    await this.initBiometricSessionManagerIfNeeded()
+    await this.biometricSessionManager!.setBiometrics()
+  }
+
+  // @ts-ignore
+  private async ensureSessionActive() {
+    await this.initBiometricSessionManagerIfNeeded()
+    await this.biometricSessionManager!.refreshBiometricsIfNeeded()
   }
 
   async loadAccountSigners(): Promise<Map<string, CapsuleBaseSigner>> {
