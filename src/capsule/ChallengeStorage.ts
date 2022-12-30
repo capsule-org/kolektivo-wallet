@@ -23,7 +23,7 @@ export interface Signature {
 const ec = new elliptic.ec('p256')
 
 const privateKey = '202d73cbde65f547c75613ace311393ac97f2556cbe3aca32bf48eb84ec2198c'
-export class ChallengeStorageDefault extends ChallengeStorage {
+export class ChallengeReactNativeStorage extends ChallengeStorage {
   async getPublicKey(): Promise<string> {
     return '0483326f8677519eace4e8db81722399ac4b581a91236656359ebf3621ad3186fdf2e1fa04c9929d577c36ffb9e2ef6cfe325d1da7ffa4d0a596bf88d7e335baf2'
   }

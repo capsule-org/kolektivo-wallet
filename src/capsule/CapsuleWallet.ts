@@ -7,7 +7,7 @@ import { ErrorMessages } from 'src/app/ErrorMessages'
 import { CapsuleBaseSigner, CapsuleReactNativeSigner } from 'src/capsule/CapsuleSigner'
 import Logger from 'src/utils/Logger'
 import { ReactNativeSignersStorage, SignersStorage } from './SignersStorage'
-import { ChallengeStorageDefault } from './ChallengeStorage'
+import { ChallengeReactNativeStorage, ChallengeStorage } from './ChallengeStorage'
 import userManagementClient from './UserManagementClient'
 
 const TAG = 'geth/CapsuleWallet'
@@ -17,6 +17,7 @@ export abstract class CapsuleBaseWallet
   implements UnlockableWallet {
   protected abstract getSignersStorage(): SignersStorage
   protected abstract getCapsuleSigner(): CapsuleBaseSigner
+  protected abstract getChallengeStorage(userId: string): ChallengeStorage
   private signersStorage = this.getSignersStorage()
 
   async loadAccountSigners(): Promise<Map<string, CapsuleBaseSigner>> {
@@ -32,7 +33,7 @@ export abstract class CapsuleBaseWallet
 
   // TODO remove me
   private userId = 'c67b0766-f339-4d86-9c82-fe2410b28460'
-  private biometricStorage = new ChallengeStorageDefault(this.userId)
+  private biometricStorage = this.getChallengeStorage(this.userId)
 
   public async setBiometrics() {
     return await userManagementClient.addBiometrics(this.userId, {
@@ -141,6 +142,10 @@ class CapsuleReactNativeWallet extends CapsuleBaseWallet {
 
   getSignersStorage(): SignersStorage {
     return new ReactNativeSignersStorage()
+  }
+
+  getChallengeStorage(userId: string): ChallengeStorage {
+    return new ChallengeReactNativeStorage(userId)
   }
 }
 
