@@ -37,6 +37,12 @@ export abstract class CapsuleBaseWallet
       )
     }
   }
+
+  // before setting bioauth, we rely on cookie from /createUser and other endpoints
+  public async setCookie() {
+    // TODO
+  }
+
   public async initBiometrics() {
     await this.initBiometricSessionManagerIfNeeded()
     await this.biometricSessionManager!.setBiometrics()

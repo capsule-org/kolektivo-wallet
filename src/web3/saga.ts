@@ -310,9 +310,10 @@ async function createFakeAccount() {
     email: `test-${uuidv4()}@test.usecapsule.com`,
   })
   Logger.debug('userId', userId)
+  await AsyncStorage.setItem(USER_ID_TAG, userId)
+
   // That is a workaround to simulate verification of test users
   await userManagementClient.verifyEmail(userId, { verificationCode: '123456' })
-  await AsyncStorage.setItem(USER_ID_TAG, userId)
   Logger.debug('Verified!')
 }
 
@@ -333,7 +334,6 @@ export function* createAndAssignCapsuleAccount() {
       if (e.message === ErrorMessages.CAPSULE_ACCOUNT_ALREADY_EXISTS) {
         Logger.warn(TAG + '@createAndAssignCapsuleAccount', 'Attempted to import same account')
       } else {
-        console.log(e)
         Logger.error(TAG + '@createAndAssignCapsuleAccount', 'Error importing raw key')
         throw e
       }
