@@ -8,7 +8,7 @@ import { CapsuleBaseSigner, CapsuleReactNativeSigner } from 'src/capsule/Capsule
 import Logger from 'src/utils/Logger'
 import { ReactNativeSignersStorage, SignersStorage } from './SignersStorage'
 import { ChallengeReactNativeStorage, ChallengeStorage } from './ChallengeStorage'
-import userManagementClient from './UserManagementClient'
+import BiometricSessionManager from './BiometricSessionManager'
 
 const TAG = 'geth/CapsuleWallet'
 
@@ -19,6 +19,13 @@ export abstract class CapsuleBaseWallet
   protected abstract getCapsuleSigner(): CapsuleBaseSigner
   protected abstract getChallengeStorage(userId: string): ChallengeStorage
   private signersStorage = this.getSignersStorage()
+  // TODO remove me
+  private userId = 'c67b0766-f339-4d86-9c82-fe2410b28460'
+  // @ts-ignore
+  private biometricSessionManager = new BiometricSessionManager(
+    this.userId,
+    this.getChallengeStorage(this.userId)
+  )
 
   async loadAccountSigners(): Promise<Map<string, CapsuleBaseSigner>> {
     const addressToSigner = new Map<string, CapsuleBaseSigner>()
@@ -29,37 +36,6 @@ export abstract class CapsuleBaseWallet
       addressToSigner.set(nativeKey, signer)
     }
     return addressToSigner
-  }
-
-  // TODO remove me
-  private userId = 'c67b0766-f339-4d86-9c82-fe2410b28460'
-  private biometricStorage = this.getChallengeStorage(this.userId)
-
-  public async setBiometrics() {
-    return await userManagementClient.addBiometrics(this.userId, {
-      publicKey: await this.biometricStorage.getPublicKey(),
-    })
-  }
-
-  private cookie: string | undefined
-
-  public async refreshBiometricsIfNeeded() {
-    if (typeof this.cookie === 'string') {
-      // this is how cookie is represented. We do parsing "manually" to avoid employing additional libs
-      // Example cookie: capsule.sid=s%3Ad324cb79-96c8-4995-868b-4774ae2004ce.RZ2H%2BbendbOVXEBJ2tKVLatSh24SOxxQ%2F7A51lfdSoM; Path=/; Expires=Fri, 30 Dec 2022 18:31:47 GMT; HttpOnly; SameSite=Strict
-      const expDate = this.cookie.split?.(';')?.[2]?.split?.('=')?.[1]
-      const isValid = expDate && new Date(expDate).valueOf() - Date.now() > 30000 // 30 seconds threshold
-      if (isValid) {
-        return
-      }
-    }
-    const challenge = await userManagementClient.getBiometricsChallenge(this.userId)
-    const message = challenge.data.challenge
-    const signature = await this.biometricStorage.signChallenge(message)
-    const response = await userManagementClient.verifyBiometricsChallenge(this.userId, {
-      signature,
-    })
-    this.cookie = response.headers['set-cookie'][0]
   }
 
   async getKeyshare(address: string): Promise<string> {
