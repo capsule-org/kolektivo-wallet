@@ -27,9 +27,9 @@ export class CapsuleWallet extends RemoteWallet<CapsuleSigner> implements Unlock
   public async refreshBiometricsIfNeeded() {
     if (typeof this.cookie === 'string') {
       // this is how cookie is represented. We do parsing "manually" to avoid employing additional libs
-      const expDate = this.cookie.split(';')[2].split('=')[1]
-      const date = new Date(expDate)
-      const isValid = date.valueOf() - Date.now() > 30000 // 30 seconds threshold
+      // Example cookie: capsule.sid=s%3Ad324cb79-96c8-4995-868b-4774ae2004ce.RZ2H%2BbendbOVXEBJ2tKVLatSh24SOxxQ%2F7A51lfdSoM; Path=/; Expires=Fri, 30 Dec 2022 18:31:47 GMT; HttpOnly; SameSite=Strict
+      const expDate = this.cookie.split?.(';')?.[2]?.split?.('=')?.[1]
+      const isValid = expDate && new Date(expDate).valueOf() - Date.now() > 30000 // 30 seconds threshold
       if (isValid) {
         return
       }
