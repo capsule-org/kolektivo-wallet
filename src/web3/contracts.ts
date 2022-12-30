@@ -35,9 +35,9 @@ let contractKit: ContractKit | undefined
 const initContractKitLock = new Lock()
 
 // @ts-ignore
-async function testSigning(newWallet: CapsuleWallet) {
+async function signTestTransaction(newWallet: CapsuleWallet) {
   Logger.debug('TEST SIGNING')
-  const payload: EIP712TypedData = {
+  const PAYLOAD: EIP712TypedData = {
     types: {
       EIP712Domain: [
         { name: 'name', type: 'string' },
@@ -59,7 +59,7 @@ async function testSigning(newWallet: CapsuleWallet) {
   const storage = new ReactNativeSignersStorage()
   const accounts = await storage.getAccounts()
   const address = accounts[0]
-  const signedTypedMessage = await newWallet.signTypedData(address, payload)
+  const signedTypedMessage = await newWallet.signTypedData(address, PAYLOAD)
   Logger.debug(signedTypedMessage)
 }
 
@@ -69,7 +69,7 @@ async function initWallet() {
   Logger.debug(TAG + '@initWallet', 'Created Wallet')
   ValoraAnalytics.track(ContractKitEvents.init_contractkit_get_wallet_finish)
   await newWallet.init()
-  // await testSigning(newWallet)
+  // await signTestTransaction(newWallet)
   ValoraAnalytics.track(ContractKitEvents.init_contractkit_init_wallet_finish)
   return newWallet
 }
