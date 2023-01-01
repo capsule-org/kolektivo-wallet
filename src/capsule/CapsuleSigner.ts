@@ -22,11 +22,32 @@ const TAG = 'geth/CapsuleSigner'
 /**
  * Implements the signer interface using the CapsuleSignerModule
  */
+
+const USER_NOT_AUTHENTICATED_ERROR = 'user must be authenticated'
+const USER_NOT_MATCHING_ERROR = 'route param userId must match session userId'
+
+async function requestAndReauthenticate<T>(
+  request: () => Promise<T>,
+  reauthenticate: () => Promise<void>
+): Promise<T> {
+  try {
+    return await request()
+  } catch (e) {
+    const { data } = e.response
+    if (data === USER_NOT_MATCHING_ERROR || data === USER_NOT_AUTHENTICATED_ERROR) {
+      await reauthenticate()
+      return await request()
+    }
+    throw e
+  }
+}
+
 export abstract class CapsuleBaseSigner implements Signer {
   private account: string = ''
   private readonly userId: string
   private keyshareStorage: PrivateKeyStorage | undefined
   protected abstract getPrivateKeyStorage(account: string): PrivateKeyStorage
+  private ensureSessionActive: () => Promise<void>
 
   async loadKeyshare(keyshare: string) {
     await this.setAccount(keyshare)
@@ -34,12 +55,16 @@ export abstract class CapsuleBaseSigner implements Signer {
     await this.keyshareStorage.setPrivateKey(keyshare)
   }
 
-  constructor(userId: string) {
+  constructor(userId: string, ensureSessionActive: () => Promise<void>) {
     this.userId = userId
+    this.ensureSessionActive = ensureSessionActive
   }
 
   async generateKeyshare(): Promise<string> {
-    const walletInfo = await userManagementClient.createWallet(this.userId)
+    const walletInfo = await requestAndReauthenticate(
+      () => userManagementClient.createWallet(this.userId),
+      this.ensureSessionActive
+    )
     Logger.debug(TAG, 'generateKeyshare ', walletInfo.walletId)
     Logger.debug(TAG, 'generateKeyshare ', walletInfo.protocolId)
 
@@ -56,7 +81,10 @@ export abstract class CapsuleBaseSigner implements Signer {
   }
 
   private async getWallet(userId: string, address: string): Promise<any> {
-    const response = await userManagementClient.getWallets(userId)
+    const response = await requestAndReauthenticate(
+      () => userManagementClient.getWallets(userId),
+      this.ensureSessionActive
+    )
     for (const wallet of response.data.wallets) {
       if (wallet.address && wallet.address.toLowerCase() == address.toLowerCase()) {
         return wallet.id
@@ -67,7 +95,10 @@ export abstract class CapsuleBaseSigner implements Signer {
 
   private async prepSignMessage(userId: string, walletId: string, tx: string): Promise<any> {
     try {
-      return await userManagementClient.preSignMessage(userId, walletId, tx)
+      return await requestAndReauthenticate(
+        () => userManagementClient.preSignMessage(userId, walletId, tx),
+        this.ensureSessionActive
+      )
     } catch (err) {
       Logger.debug(TAG, 'CAPSULE ERROR ', err)
     }
