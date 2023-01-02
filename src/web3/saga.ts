@@ -333,7 +333,6 @@ export function* createAndAssignCapsuleAccount() {
       if (e.message === ErrorMessages.CAPSULE_ACCOUNT_ALREADY_EXISTS) {
         Logger.warn(TAG + '@createAndAssignCapsuleAccount', 'Attempted to import same account')
       } else {
-        console.log(e)
         Logger.error(TAG + '@createAndAssignCapsuleAccount', 'Error importing raw key')
         throw e
       }
