@@ -5,7 +5,7 @@ export default class BiometricSessionManager {
   private userId: string
   private biometricStorage: ChallengeStorage
   public async setBiometrics() {
-    await userManagementClient.addBiometrics(this.userId, {
+    return await userManagementClient.addBiometrics(this.userId, {
       publicKey: await this.biometricStorage.getPublicKey(),
     })
   }
