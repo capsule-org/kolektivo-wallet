@@ -1,5 +1,8 @@
-import elliptic from 'elliptic'
+import elliptic, { ec } from 'elliptic'
+// @ts-ignore
+import EllipticSignature from 'elliptic/lib/elliptic/ec/signature'
 import crypto from 'crypto'
+import DeviceCrypto, { AccessLevel } from 'react-native-device-crypto'
 
 export abstract class ChallengeStorage {
   protected userId: string
@@ -20,7 +23,7 @@ export interface Signature {
   recoveryParam: number
 }
 
-const ec = new elliptic.ec('p256')
+const ecl = new elliptic.ec('p256')
 
 const privateKey = '202d73cbde65f547c75613ace311393ac97f2556cbe3aca32bf48eb84ec2198c'
 export class ChallengeReactNativeStorage extends ChallengeStorage {
@@ -31,9 +34,9 @@ export class ChallengeReactNativeStorage extends ChallengeStorage {
   async signChallenge(message: string): Promise<Signature> {
     const hash = crypto.createHash('sha256')
     hash.update(message, 'utf8')
-    const hashedMessage = hash.digest('base64')
+    const hashedMessage = hash.digest('hex')
 
-    const signature = ec.keyFromPrivate(privateKey).sign(hashedMessage)
+    const signature = ecl.keyFromPrivate(privateKey).sign(hashedMessage)
     return {
       r: signature.r.toString('hex'),
       s: signature.s.toString('hex'),
@@ -41,3 +44,55 @@ export class ChallengeReactNativeStorage extends ChallengeStorage {
     }
   }
 }
+
+const test2 = async () => {
+  const message = '1d52c368-d91c-46f4-b449-fa142c8b812d'
+
+  const pk2 = await DeviceCrypto.getOrCreateAsymmetricKey('userid', {
+    accessLevel: AccessLevel.ALWAYS,
+    invalidateOnNewBiometry: false,
+  })
+  const base64Pk = pk2
+    .split('-')
+    .find((e) => e.length > 50)!
+    .trim()
+  const buffer = Buffer.from(base64Pk, 'base64')
+  const bufString = buffer.toString('hex')
+  const hexpk = bufString.slice(52)
+  const publicKey = ecl.keyFromPublic(hexpk, 'hex')
+
+  const hash = crypto.createHash('sha256')
+  hash.update(message)
+  const hashedMessage = hash.digest('hex')
+  const signature = await DeviceCrypto.sign('userid', message, {
+    biometryTitle: 'Authenticate',
+    biometrySubTitle: 'Signing',
+    biometryDescription: 'Authenticate your self to sign the text',
+  })
+
+  const buffer2 = Buffer.from(signature, 'base64')
+  const sigHex = buffer2.toString('hex')
+  const sigParsed = new EllipticSignature(sigHex, 'hex') as ec.Signature // hack due to incorrect typings
+  const aigRR = {
+    r: sigParsed.r.toString('hex'),
+    s: sigParsed.s.toString('hex'),
+    recoveryParam: sigParsed.recoveryParam as number,
+  }
+
+  const RES = publicKey.verify(hashedMessage, aigRR)
+
+  console.log(
+    JSON.stringify(
+      {
+        publicKey: hexpk,
+        publicKeyLen: hexpk.length,
+        hash: hashedMessage,
+        result: RES,
+        signature: aigRR,
+      },
+      null,
+      2
+    )
+  )
+}
+void test2()

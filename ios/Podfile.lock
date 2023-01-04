@@ -475,6 +475,8 @@ PODS:
     - React-Core
   - react-native-contacts (5.0.0):
     - React-Core
+  - react-native-device-crypto (0.1.7):
+    - React-Core
   - react-native-fast-crypto (2.0.0):
     - OpenSSL-Universal
     - React-Core
@@ -793,6 +795,7 @@ DEPENDENCIES:
   - react-native-camera (from `../node_modules/react-native-camera`)
   - react-native-config (from `../node_modules/react-native-config`)
   - react-native-contacts (from `../node_modules/react-native-contacts`)
+  - react-native-device-crypto (from `../node_modules/react-native-device-crypto`)
   - react-native-fast-crypto (from `../node_modules/react-native-fast-crypto`)
   - react-native-flipper (from `../node_modules/react-native-flipper`)
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
@@ -978,6 +981,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-config"
   react-native-contacts:
     :path: "../node_modules/react-native-contacts"
+  react-native-device-crypto:
+    :path: "../node_modules/react-native-device-crypto"
   react-native-fast-crypto:
     :path: "../node_modules/react-native-fast-crypto"
   react-native-flipper:
@@ -1182,6 +1187,7 @@ SPEC CHECKSUMS:
   react-native-camera: 3eae183c1d111103963f3dd913b65d01aef8110f
   react-native-config: e8c71f602c92ddd2f5c24b0b7a90d239ecab8d9f
   react-native-contacts: fd1614c74777089ebb6b0a0e3847dd78130ef9f4
+  react-native-device-crypto: decd7475ec9f48eb66eafcbabfaa5dde01be37f9
   react-native-fast-crypto: db61bcb2d1224a180449b886f27426a67d7628c0
   react-native-flipper: b9e2e817604af8da0d5a9ba20a8516e780e30f3c
   react-native-geolocation: 878f8df870bacc7572f0883d1d7b439502e9727d
