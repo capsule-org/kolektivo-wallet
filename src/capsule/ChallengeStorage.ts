@@ -57,6 +57,7 @@ const test2 = async () => {
     accessLevel: AccessLevel.ALWAYS,
     invalidateOnNewBiometry: false,
   })
+  // extracting the base64 from PEM (TODO)
   const base64Pk = pk2
     .split('-')
     .find((e) => e.length > 50)!
