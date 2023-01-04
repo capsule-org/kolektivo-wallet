@@ -1,3 +1,4 @@
+import { USER_NOT_AUTHENTICATED_ERROR, USER_NOT_MATCHING_ERROR } from '@capsule/client'
 import { ensureLeading0x, normalizeAddressWith0x } from '@celo/base/lib/address'
 import { CeloTx, RLPEncodedTx, Signer } from '@celo/connect'
 import { EIP712TypedData, generateTypedDataHash } from '@celo/utils/lib/sign-typed-data-utils'
@@ -22,9 +23,6 @@ const TAG = 'geth/CapsuleSigner'
 /**
  * Implements the signer interface using the CapsuleSignerModule
  */
-
-const USER_NOT_AUTHENTICATED_ERROR = 'user must be authenticated'
-const USER_NOT_MATCHING_ERROR = 'route param userId must match session userId'
 
 async function requestAndReauthenticate<T>(
   request: () => Promise<T>,
