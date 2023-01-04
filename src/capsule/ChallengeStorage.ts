@@ -3,6 +3,9 @@ import elliptic, { ec } from 'elliptic'
 import EllipticSignature from 'elliptic/lib/elliptic/ec/signature'
 import crypto from 'crypto'
 import DeviceCrypto, { AccessLevel } from 'react-native-device-crypto'
+import userManagementClient from './UserManagementClient'
+import { v4 as uuidv4 } from 'uuid'
+import Logger from '../utils/Logger'
 
 export abstract class ChallengeStorage {
   protected userId: string
@@ -44,10 +47,12 @@ export class ChallengeReactNativeStorage extends ChallengeStorage {
     }
   }
 }
-
 const test2 = async () => {
-  const message = '1d52c368-d91c-46f4-b449-fa142c8b812d'
-
+  const { userId } = await userManagementClient.createUser({
+    email: `test-${uuidv4()}@test.usecapsule.com`,
+  })
+  Logger.debug('userId', userId)
+  await userManagementClient.verifyEmail(userId, { verificationCode: '123456' })
   const pk2 = await DeviceCrypto.getOrCreateAsymmetricKey('userid', {
     accessLevel: AccessLevel.ALWAYS,
     invalidateOnNewBiometry: false,
@@ -59,8 +64,11 @@ const test2 = async () => {
   const buffer = Buffer.from(base64Pk, 'base64')
   const bufString = buffer.toString('hex')
   const hexpk = bufString.slice(52)
-  const publicKey = ecl.keyFromPublic(hexpk, 'hex')
+  await userManagementClient.addBiometrics(userId, { publicKey: hexpk })
+  const challenge = await userManagementClient.getBiometricsChallenge(userId)
+  const message = challenge.data.challenge
 
+  const publicKey = ecl.keyFromPublic(hexpk, 'hex')
   const hash = crypto.createHash('sha256')
   hash.update(message)
   const hashedMessage = hash.digest('hex')
@@ -79,6 +87,9 @@ const test2 = async () => {
     recoveryParam: sigParsed.recoveryParam as number,
   }
 
+  const res = await userManagementClient.verifyBiometricsChallenge(userId, { signature: aigRR })
+  console.log({ res })
+
   const RES = publicKey.verify(hashedMessage, aigRR)
 
   console.log(
@@ -95,4 +106,5 @@ const test2 = async () => {
     )
   )
 }
+
 void test2()
