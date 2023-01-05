@@ -89,6 +89,7 @@ export class ChallengeFakeReactNativeStorage extends ChallengeStorage {
   }
 }
 
+// @ts-ignore
 const test2 = async () => {
   const { userId } = await userManagementClient.createUser({
     email: `test-${uuidv4()}@test.usecapsule.com`,
@@ -130,11 +131,11 @@ const test2 = async () => {
   const res = await userManagementClient.verifyBiometricsChallenge(userId, {
     signature: cannonicalSignature,
   })
-  console.log({ res })
+  Logger.debug(res)
 
   const RES = publicKey.verify(hashedMessage, cannonicalSignature)
 
-  console.log(
+  Logger.debug(
     JSON.stringify(
       {
         publicKey: publicKeyHex,
