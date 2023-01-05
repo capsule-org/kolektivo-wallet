@@ -60,7 +60,6 @@ interface Props {
 // if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
 //   UIManager.setLayoutAnimationEnabledExperimental(true)
 // }
-import '../capsule/ChallengeStorage'
 
 export class App extends React.Component<Props> {
   reactLoadTime: number = Date.now()
