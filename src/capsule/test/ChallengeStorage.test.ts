@@ -35,7 +35,7 @@ const completeFlowWithServer = async () => {
 const completeFlowOffline = async () => {
   const storage = new ChallengeReactNativeStorage('123')
   const message = '1d52c368-d91c-46f4-b449-fa142c8b812d'
-  void (await storage.getPublicKey()) // we cannot sign with with setting biometrics, what is initializing the key
+  void (await storage.getPublicKey()) // we cannot sign without biometric initialized.
   const signature = await storage.signChallenge(message)
   const publicKeyHex = await storage.getPublicKey()
   const publicKey = ecl.keyFromPublic(publicKeyHex, 'hex')
