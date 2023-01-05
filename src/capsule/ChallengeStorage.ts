@@ -4,9 +4,6 @@ import elliptic, { ec } from 'elliptic'
 import EllipticSignature from 'elliptic/lib/elliptic/ec/signature'
 import crypto from 'crypto'
 import DeviceCrypto, { AccessLevel } from 'react-native-device-crypto'
-import userManagementClient from './UserManagementClient'
-import { v4 as uuidv4 } from 'uuid'
-import Logger from '../utils/Logger'
 
 export abstract class ChallengeStorage {
   protected userId: string
@@ -88,66 +85,3 @@ export class ChallengeFakeReactNativeStorage extends ChallengeStorage {
     }
   }
 }
-
-// @ts-ignore
-const test2 = async () => {
-  const { userId } = await userManagementClient.createUser({
-    email: `test-${uuidv4()}@test.usecapsule.com`,
-  })
-  Logger.debug('userId', userId)
-  await userManagementClient.verifyEmail(userId, { verificationCode: '123456' })
-  const pemPublicKey = await DeviceCrypto.getOrCreateAsymmetricKey('userid', {
-    accessLevel: AccessLevel.ALWAYS,
-    invalidateOnNewBiometry: false,
-  })
-
-  const base64PublicKey = pemPublicKey.replace(PEM_FOOTER, '').replace(PEM_HEADER, '').trim()
-  const bufferPublicKey = Buffer.from(base64PublicKey, 'base64')
-  const publicKeyHexAsnPreamble = bufferPublicKey.toString('hex')
-  const publicKeyHex = publicKeyHexAsnPreamble.slice(52)
-  await userManagementClient.addBiometrics(userId, { publicKey: publicKeyHex })
-  const challenge = await userManagementClient.getBiometricsChallenge(userId)
-  const message = challenge.data.challenge
-
-  const publicKey = ecl.keyFromPublic(publicKeyHex, 'hex')
-  const messageHash = crypto.createHash('sha256')
-  messageHash.update(message)
-  const hashedMessage = messageHash.digest('hex')
-  const signatureDERBase64 = await DeviceCrypto.sign('userid', message, {
-    biometryTitle: 'Authenticate',
-    biometrySubTitle: 'Signing',
-    biometryDescription: 'Authenticate your self to sign the text',
-  })
-
-  const signatureDERBuffer = Buffer.from(signatureDERBase64, 'base64')
-  const signatureDERHex = signatureDERBuffer.toString('hex')
-  const signature = new EllipticSignature(signatureDERHex, 'hex') as ec.Signature // hack due to incorrect typings
-  const cannonicalSignature = {
-    r: signature.r.toString('hex'),
-    s: signature.s.toString('hex'),
-    recoveryParam: signature.recoveryParam as number,
-  }
-
-  const res = await userManagementClient.verifyBiometricsChallenge(userId, {
-    signature: cannonicalSignature,
-  })
-  Logger.debug(res)
-
-  const RES = publicKey.verify(hashedMessage, cannonicalSignature)
-
-  Logger.debug(
-    JSON.stringify(
-      {
-        publicKey: publicKeyHex,
-        publicKeyLen: publicKeyHex.length,
-        hash: hashedMessage,
-        result: RES,
-        signature: cannonicalSignature,
-      },
-      null,
-      2
-    )
-  )
-}
-
-// void test2()

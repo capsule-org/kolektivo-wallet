@@ -93,6 +93,28 @@ export abstract class CapsuleBaseSigner implements Signer {
 
   private async prepSignMessage(userId: string, walletId: string, tx: string): Promise<any> {
     try {
+      console.log('Waiting')
+      await new Promise((r) => setTimeout(r, 30000))
+      console.log(30)
+      await new Promise((r) => setTimeout(r, 30000))
+      console.log(60)
+      await new Promise((r) => setTimeout(r, 30000))
+      console.log(90)
+      await new Promise((r) => setTimeout(r, 30000))
+      console.log(120)
+      await new Promise((r) => setTimeout(r, 30000))
+      console.log(180)
+      await new Promise((r) => setTimeout(r, 30000))
+      console.log(210)
+      await new Promise((r) => setTimeout(r, 30000))
+      console.log(240)
+      await new Promise((r) => setTimeout(r, 30000))
+      console.log(270)
+      await new Promise((r) => setTimeout(r, 30000))
+      console.log(300)
+      await new Promise((r) => setTimeout(r, 30000))
+      console.log(320)
+
       return await requestAndReauthenticate(
         () => userManagementClient.preSignMessage(userId, walletId, tx),
         this.ensureSessionActive
