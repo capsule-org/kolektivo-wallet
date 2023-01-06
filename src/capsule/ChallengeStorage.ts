@@ -1,8 +1,7 @@
 // eslint-disable-next-line max-classes-per-file
-import elliptic, { ec } from 'elliptic'
+import { ec } from 'elliptic'
 // @ts-ignore
 import EllipticSignature from 'elliptic/lib/elliptic/ec/signature'
-import crypto from 'crypto'
 import DeviceCrypto, { AccessLevel } from 'react-native-device-crypto'
 
 export abstract class ChallengeStorage {
@@ -23,8 +22,6 @@ export interface Signature {
   s: string
   recoveryParam: number
 }
-
-const ecl = new elliptic.ec('p256')
 
 const PEM_HEADER = '-----BEGIN PUBLIC KEY-----'
 const PEM_FOOTER = '-----END PUBLIC KEY-----'
@@ -49,7 +46,7 @@ export class ChallengeReactNativeStorage extends ChallengeStorage {
     const signatureDERBase64 = await DeviceCrypto.sign(this.storageIdentifier(), message, {
       biometryTitle: 'Authenticate',
       biometrySubTitle: 'Signing',
-      biometryDescription: 'Authenticate your self to sign the text',
+      biometryDescription: 'Authenticate yourself to sign the text',
     })
 
     const signatureDERBuffer = Buffer.from(signatureDERBase64, 'base64')
@@ -61,27 +58,5 @@ export class ChallengeReactNativeStorage extends ChallengeStorage {
       recoveryParam: signature.recoveryParam as number,
     }
     return cannonicalSignature
-  }
-}
-
-export class ChallengeFakeReactNativeStorage extends ChallengeStorage {
-  private static privateKey = '202d73cbde65f547c75613ace311393ac97f2556cbe3aca32bf48eb84ec2198c'
-  async getPublicKey(): Promise<string> {
-    return '0483326f8677519eace4e8db81722399ac4b581a91236656359ebf3621ad3186fdf2e1fa04c9929d577c36ffb9e2ef6cfe325d1da7ffa4d0a596bf88d7e335baf2'
-  }
-
-  async signChallenge(message: string): Promise<Signature> {
-    const hash = crypto.createHash('sha256')
-    hash.update(message, 'utf8')
-    const hashedMessage = hash.digest('hex')
-
-    const signature = ecl
-      .keyFromPrivate(ChallengeFakeReactNativeStorage.privateKey)
-      .sign(hashedMessage)
-    return {
-      r: signature.r.toString('hex'),
-      s: signature.s.toString('hex'),
-      recoveryParam: signature.recoveryParam as number,
-    }
   }
 }
