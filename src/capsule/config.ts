@@ -1,9 +1,8 @@
 import { NativeModules } from 'react-native'
 
 export const networkLoadBalancer =
-  'http://mpcnetworkloadbalancer-348316826.us-west-1.elb.amazonaws.com'
-export const userManagementServer =
-  'http://usermanagementloadbalancer-461184073.us-west-1.elb.amazonaws.com/'
+  'https://mpcnetworkloadbalancer-653682245.us-east-1.elb.amazonaws.com'
+export const userManagementServer = 'https://user-management.sandbox.usecapsule.com/'
 const { CapsuleSignerModule } = NativeModules
 
 function init() {
