@@ -328,6 +328,7 @@ export function* createAndAssignCapsuleAccount() {
     try {
       yield call([wallet, wallet.initBiometrics])
       account = yield call([wallet, wallet.addAccount], undefined, (recoveryKeyshare) =>
+        // TODO: send it e.g., via e-mail to the user
         Logger.info(`RECOVERY: ${recoveryKeyshare}`)
       )
       void wallet.getKeyshare(account).then((privateKeyShare) => {
