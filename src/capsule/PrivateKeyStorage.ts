@@ -3,7 +3,7 @@ export abstract class PrivateKeyStorage {
 
   public abstract setPrivateKey(key: string): Promise<void>
 
-  public abstract getPrivateKey(): Promise<string>
+  public abstract getPrivateKey(): Promise<string | null>
 
   public constructor(walletId: string) {
     this.walletId = walletId
