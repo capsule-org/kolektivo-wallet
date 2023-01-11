@@ -159,7 +159,7 @@ export abstract class CapsuleBaseSigner implements Signer {
     const walletId = await this.getWallet(this.userId, address)
     Logger.info(`${TAG}@signTypedData`, 'walletId ' + walletId)
 
-    const res = await this.prepSignMessage(this.userId, walletId, tx)
+    const res = await this.preSignMessage(this.userId, walletId, tx)
     Logger.info(`${TAG}@signTypedData`, 'protocolId ' + res.protocolId)
     Logger.info(`${TAG}@signTypedData`, `transaction ` + tx)
     const keyshare = await this.keyshareStorage?.getPrivateKey()
@@ -206,7 +206,7 @@ export abstract class CapsuleBaseSigner implements Signer {
     return undefined
   }
 
-  private async prepSignMessage(userId: string, walletId: string, tx: string): Promise<any> {
+  private async preSignMessage(userId: string, walletId: string, tx: string): Promise<any> {
     try {
       return await requestAndReauthenticate(
         () => userManagementClient.preSignMessage(userId, walletId, tx),
