@@ -4,81 +4,76 @@ import { UnlockableWallet } from '@celo/wallet-base'
 import { RemoteWallet } from '@celo/wallet-remote'
 import * as ethUtil from 'ethereumjs-util'
 import { ErrorMessages } from 'src/app/ErrorMessages'
-import { CapsuleBaseSigner, CapsuleReactNativeSigner } from 'src/capsule/CapsuleSigner'
+import { CapsuleBaseSigner } from 'src/capsule/CapsuleSigner'
 import Logger from 'src/utils/Logger'
-import { ReactNativeSignersStorage, SignersStorage } from './SignersStorage'
-import { ChallengeReactNativeStorage, ChallengeStorage } from './ChallengeStorage'
+import { SignersStorage } from './SignersStorage'
+import { ChallengeStorage } from './ChallengeStorage'
 import BiometricSessionManager from './BiometricSessionManager'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const TAG = 'geth/CapsuleWallet'
 
 export abstract class CapsuleBaseWallet
   extends RemoteWallet<CapsuleBaseSigner>
   implements UnlockableWallet {
+  private signersStorage = this.getSignersStorage()
+  private biometricSessionManager: BiometricSessionManager | undefined
+
+  // ------------- Platform-specific functionalities -------------
+  /**
+   * Get instance of persistent storage for signers
+   * @protected
+   */
   protected abstract getSignersStorage(): SignersStorage
+  /**
+   * Get signer instance from the userId
+   * @param userId
+   * @param ensureSessionActive helper to use by signer if the session is expired
+   * @protected
+   */
   protected abstract getCapsuleSigner(
     userId: string,
     ensureSessionActive: () => Promise<void>
   ): CapsuleBaseSigner
+
+  /**
+   * Get storage instance for persisting biometrics and signing messages.
+   * @param userId
+   * @protected
+   */
   protected abstract getChallengeStorage(userId: string): ChallengeStorage
+
+  /**
+   * Getter for user id as we do not require its presence while creating wallet.
+   * @protected
+   */
   protected abstract getUserId(): Promise<string>
-  private signersStorage = this.getSignersStorage()
-  // // @ts-ignore
-  private biometricSessionManager: BiometricSessionManager | undefined
 
-  // We initialize the manager late to ensure the userID is available.
-  private async initBiometricSessionManagerIfNeeded() {
-    if (!this.biometricSessionManager) {
-      const userId = await this.getUserId()
-      if (!userId) {
-        throw Error('UserId not available during initializing biometrics')
-      }
-      this.biometricSessionManager = new BiometricSessionManager(
-        userId,
-        this.getChallengeStorage(userId)
-      )
-    }
-  }
+  // ------------- Public methods -------------
 
+  /**
+   * Send a biometric public key to the server to allow session refreshing.
+   * Requires usedId to be initialized.
+   */
   public async initBiometrics() {
     await this.initBiometricSessionManagerIfNeeded()
     await this.biometricSessionManager!.setBiometrics()
   }
 
-  // @ts-ignore
-  private async ensureSessionActive() {
-    await this.initBiometricSessionManagerIfNeeded()
-    await this.biometricSessionManager!.refreshBiometricsIfNeeded()
-  }
-
-  async loadAccountSigners(): Promise<Map<string, CapsuleBaseSigner>> {
-    const addressToSigner = new Map<string, CapsuleBaseSigner>()
-    const nativeKeys = await this.signersStorage.getAccounts()
-    for (const nativeKey of nativeKeys) {
-      const userId = await this.getUserId()
-      const signer = this.getCapsuleSigner(userId, () => this.ensureSessionActive())
-      signer.setNativeKey(nativeKey)
-      addressToSigner.set(nativeKey, signer)
-    }
-    return addressToSigner
-  }
-
-  async getKeyshare(address: string): Promise<string> {
-    const keyshare = await this.getSigner(address).getKeyshare()
-    if (!keyshare) {
-      Logger.error(`${TAG}@addAccount`, `Missing private key`)
-      throw new Error(ErrorMessages.CAPSULE_UNEXPECTED_ADDRESS)
-    }
-    return keyshare!
-  }
-
-  async addAccount(privateKey?: string): Promise<string> {
+  /**
+   * Add account to the wallet. Once initialized with a keyhare, the account is imported to the wallet.
+   * If the keyshare is not provided, the new key account is generated and the recovery keyshare returned with a callback.
+   * @param privateKey
+   * @param onRecoveryKeyshare
+   */
+  public async addAccount(
+    privateKey?: string | undefined,
+    onRecoveryKeyshare?: (keyshare: string) => void
+  ): Promise<string> {
     const userId = await this.getUserId()
     const signer = this.getCapsuleSigner(userId, () => this.ensureSessionActive())
     if (!privateKey) {
       Logger.info(`${TAG}@addAccount`, `Creating a new account`)
-      privateKey = await signer.generateKeyshare()
+      privateKey = await signer.generateKeyshare(onRecoveryKeyshare)
       Logger.info(`${TAG}@addAccount`, privateKey)
       await signer.loadKeyshare(privateKey)
     } else {
@@ -98,13 +93,13 @@ export abstract class CapsuleBaseWallet
   }
 
   // TODO generate a session token for the wallet
-  async unlockAccount(account: string, passphrase: string, duration: number) {
+  public async unlockAccount(account: string, passphrase: string, duration: number) {
     Logger.info(`${TAG}@unlockAccount`, `Unlocking ${account}`)
     return true
   }
 
   // TODO check session token validity
-  isAccountUnlocked(address: string) {
+  public isAccountUnlocked(address: string) {
     return true
   }
 
@@ -113,7 +108,7 @@ export abstract class CapsuleBaseWallet
    * @param txParams Transaction to sign
    * @dev overrides WalletBase.signTransaction
    */
-  async signTransaction(txParams: CeloTx) {
+  public async signTransaction(txParams: CeloTx) {
     Logger.info(`${TAG}@signTransaction`, `Signing transaction: ${JSON.stringify(txParams)}`)
     // Get the signer from the 'from' field
     const fromAddress = txParams.from!.toString()
@@ -127,7 +122,7 @@ export abstract class CapsuleBaseWallet
    * @param typedData The data to sign
    * @dev overrides WalletBase.signTypedData
    */
-  async signTypedData(address: string, typedData: EIP712TypedData): Promise<string> {
+  public async signTypedData(address: string, typedData: EIP712TypedData): Promise<string> {
     Logger.info(
       `${TAG}@signTypedData`,
       `Signing typed DATA: ${JSON.stringify({ address, typedData })}`
@@ -136,26 +131,50 @@ export abstract class CapsuleBaseWallet
     const { v, r, s } = await signer.signTypedData(typedData, address)
     return ethUtil.toRpcSig(v, r, s)
   }
+
+  /**
+   * Export keyshare from the wallet
+   * @param address
+   */
+  async getKeyshare(address: string): Promise<string> {
+    const keyshare = await this.getSigner(address).getKeyshare()
+    if (!keyshare) {
+      Logger.error(`${TAG}@addAccount`, `Missing private key`)
+      throw new Error(ErrorMessages.CAPSULE_UNEXPECTED_ADDRESS)
+    }
+    return keyshare!
+  }
+
+  // --------------------------
+
+  // We initialize the manager late to ensure the userID is available.
+  private async initBiometricSessionManagerIfNeeded() {
+    if (!this.biometricSessionManager) {
+      const userId = await this.getUserId()
+      if (!userId) {
+        throw Error('UserId not available during initializing biometrics')
+      }
+      this.biometricSessionManager = new BiometricSessionManager(
+        userId,
+        this.getChallengeStorage(userId)
+      )
+    }
+  }
+
+  private async ensureSessionActive() {
+    await this.initBiometricSessionManagerIfNeeded()
+    await this.biometricSessionManager!.refreshBiometricsIfNeeded()
+  }
+
+  async loadAccountSigners(): Promise<Map<string, CapsuleBaseSigner>> {
+    const addressToSigner = new Map<string, CapsuleBaseSigner>()
+    const nativeKeys = await this.signersStorage.getAccounts()
+    for (const nativeKey of nativeKeys) {
+      const userId = await this.getUserId()
+      const signer = this.getCapsuleSigner(userId, () => this.ensureSessionActive())
+      signer.setNativeKey(nativeKey)
+      addressToSigner.set(nativeKey, signer)
+    }
+    return addressToSigner
+  }
 }
-
-export const USER_ID_TAG = '@CAPSULE/USER_ID'
-
-class CapsuleReactNativeWallet extends CapsuleBaseWallet {
-  getCapsuleSigner(userId: string, ensureSessionActive: () => Promise<void>): CapsuleBaseSigner {
-    return new CapsuleReactNativeSigner(userId, ensureSessionActive)
-  }
-
-  getSignersStorage(): SignersStorage {
-    return new ReactNativeSignersStorage()
-  }
-
-  getChallengeStorage(userId: string): ChallengeStorage {
-    return new ChallengeReactNativeStorage(userId)
-  }
-
-  async getUserId(): Promise<string> {
-    return (await AsyncStorage.getItem(USER_ID_TAG)) as string
-  }
-}
-
-export { CapsuleReactNativeWallet as CapsuleWallet }

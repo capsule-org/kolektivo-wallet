@@ -1,29 +1,24 @@
 import { USER_NOT_AUTHENTICATED_ERROR, USER_NOT_MATCHING_ERROR } from '@capsule/client'
-import { ensureLeading0x, normalizeAddressWith0x } from '@celo/base/lib/address'
+import { normalizeAddressWith0x } from '@celo/base/lib/address'
 import { CeloTx, RLPEncodedTx, Signer } from '@celo/connect'
 import { EIP712TypedData, generateTypedDataHash } from '@celo/utils/lib/sign-typed-data-utils'
 import { encodeTransaction, extractSignature, rlpEncodedTx } from '@celo/wallet-base'
 import { fromRpcSig } from 'ethereumjs-util'
 import { NativeModules } from 'react-native'
 import Logger from 'src/utils/Logger'
-import { PrivateKeyStorage, PrivateKeyStorageReactNative } from './PrivateKeyStorage'
+import { PrivateKeyStorage } from './PrivateKeyStorage'
 import userManagementClient from './UserManagementClient'
+import { base64ToHex, hexToBase64 } from './helpers'
 
 const { CapsuleSignerModule } = NativeModules
 
-// userManagementClient.createUser({
-//   email: "michal+911@usecapsule.com"
-// }).then(r => console.log("USER: " + JSON.stringify(r))).catch(e => console.log("USER ERROR:" + e))
-
-// userManagementClient.verifyEmail("7d040fec-825a-4ac9-bb5c-281e3af87d8e", {
-//   verificationCode: "170510"
-// }).then(r => console.log("VERIFY USER: " + JSON.stringify(r))).catch(e => console.log("VERIFY USER ERROR:" + e))
-
 const TAG = 'geth/CapsuleSigner'
-/**
- * Implements the signer interface using the CapsuleSignerModule
- */
 
+/**
+ * Wrapper for request to refresh cookie and retry on cookies-related failures
+ * @param request request function
+ * @param reauthenticate function to refresh session cookies
+ */
 async function requestAndReauthenticate<T>(
   request: () => Promise<T>,
   reauthenticate: () => Promise<void>
@@ -40,69 +35,56 @@ async function requestAndReauthenticate<T>(
   }
 }
 
+/**
+ * Implements the signer interface using the CapsuleSignerModule
+ */
 export abstract class CapsuleBaseSigner implements Signer {
-  private account: string = ''
+  private account: string | undefined
   private readonly userId: string
   private keyshareStorage: PrivateKeyStorage | undefined
-  protected abstract getPrivateKeyStorage(account: string): PrivateKeyStorage
   private ensureSessionActive: () => Promise<void>
-
-  async loadKeyshare(keyshare: string) {
-    await this.setAccount(keyshare)
-    this.keyshareStorage = this.getPrivateKeyStorage(this.account)
-    await this.keyshareStorage.setPrivateKey(keyshare)
-  }
 
   constructor(userId: string, ensureSessionActive: () => Promise<void>) {
     this.userId = userId
     this.ensureSessionActive = ensureSessionActive
   }
 
-  async generateKeyshare(): Promise<string> {
+  // ------------- Platform-specific functionalities -------------
+  /**
+   * get instance of the storage for setting and retrieving keyshare secret.
+   * @param account
+   * @protected
+   */
+  protected abstract getPrivateKeyStorage(account: string): PrivateKeyStorage
+
+  // ------------- Public methods -------------
+
+  async loadKeyshare(keyshare: string) {
+    await this.setAccount(keyshare)
+    if (!this.account) {
+      throw Error('loadKeyshare needs to be preceded with setting valid account id.')
+    }
+    this.keyshareStorage = this.getPrivateKeyStorage(this.account)
+    await this.keyshareStorage.setPrivateKey(keyshare)
+  }
+
+  public async generateKeyshare(onRecoveryKeyshare?: (keyshare: string) => void): Promise<string> {
     const walletInfo = await requestAndReauthenticate(
       () => userManagementClient.createWallet(this.userId),
       this.ensureSessionActive
     )
-    Logger.debug(TAG, 'generateKeyshare ', walletInfo.walletId)
-    Logger.debug(TAG, 'generateKeyshare ', walletInfo.protocolId)
-
     const keyshares = await Promise.all([
       CapsuleSignerModule.createAccount(walletInfo.walletId, walletInfo.protocolId, 'USER'),
       CapsuleSignerModule.createAccount(walletInfo.walletId, walletInfo.protocolId, 'RECOVERY'),
     ])
+
     const userPrivateKeyshare = keyshares[0]
     const recoveryPrivateKeyShare = keyshares[1]
-    Logger.debug(TAG, 'CAPSULE KEYGEN ', userPrivateKeyshare)
-    Logger.debug(TAG, 'CAPSULE KEYGEN ', recoveryPrivateKeyShare)
-    Logger.debug(TAG, 'CAPSULE account address ', this.account)
+    onRecoveryKeyshare?.(recoveryPrivateKeyShare)
     return userPrivateKeyshare
   }
 
-  private async getWallet(userId: string, address: string): Promise<any> {
-    const response = await requestAndReauthenticate(
-      () => userManagementClient.getWallets(userId),
-      this.ensureSessionActive
-    )
-    for (const wallet of response.data.wallets) {
-      if (wallet.address && wallet.address.toLowerCase() == address.toLowerCase()) {
-        return wallet.id
-      }
-    }
-    return undefined
-  }
-
-  private async prepSignMessage(userId: string, walletId: string, tx: string): Promise<any> {
-    try {
-      return await requestAndReauthenticate(
-        () => userManagementClient.preSignMessage(userId, walletId, tx),
-        this.ensureSessionActive
-      )
-    } catch (err) {
-      Logger.debug(TAG, 'CAPSULE ERROR ', err)
-    }
-  }
-
-  async getKeyshare(): Promise<string | undefined> {
+  public async getKeyshare(): Promise<string | undefined> {
     return await this.keyshareStorage?.getPrivateKey()
   }
 
@@ -111,12 +93,12 @@ export abstract class CapsuleBaseSigner implements Signer {
     this.keyshareStorage = this.getPrivateKeyStorage(this.account)
   }
 
-  async setAccount(keyshare: string) {
+  public async setAccount(keyshare: string) {
     const address = await CapsuleSignerModule.getAddress(keyshare)
     this.account = normalizeAddressWith0x(address)
   }
 
-  async signRawTransaction(tx: CeloTx) {
+  public async signRawTransaction(tx: CeloTx) {
     if (!this.keyshareStorage?.getPrivateKey() || !this.account) {
       throw new Error(
         'Cannot signRawTransaction from CapsuleSigner before keygeneration or initialization'
@@ -130,7 +112,7 @@ export abstract class CapsuleBaseSigner implements Signer {
     return encodeTransaction(encodedTx, signature)
   }
 
-  async signTransaction(
+  public async signTransaction(
     // addToV (chainId) is ignored here because geth will
     // build it based on its configuration
     addToV: number,
@@ -145,16 +127,16 @@ export abstract class CapsuleBaseSigner implements Signer {
 
     const protocolId = CapsuleSignerModule.getProtocolId()
     Logger.debug(TAG, 'signTransaction Capsule protocolId', protocolId)
-    Logger.debug(TAG, 'signTransaction Capsule tx', this.hexToBase64(encodedTx.rlpEncode))
+    Logger.debug(TAG, 'signTransaction Capsule tx', hexToBase64(encodedTx.rlpEncode))
     const signedTxBase64 = await CapsuleSignerModule.sendTransaction(
       this.keyshareStorage?.getPrivateKey(),
       protocolId,
-      this.hexToBase64(encodedTx.rlpEncode)
+      hexToBase64(encodedTx.rlpEncode)
     )
-    return extractSignature(this.base64ToHex(signedTxBase64))
+    return extractSignature(base64ToHex(signedTxBase64))
   }
 
-  async signPersonalMessage(data: string): Promise<{ v: number; r: Buffer; s: Buffer }> {
+  public async signPersonalMessage(data: string): Promise<{ v: number; r: Buffer; s: Buffer }> {
     throw new Error('Not implemented')
     // Logger.info(`${TAG}@signPersonalMessage`, `Signing ${data}`)
     // const hash = ethUtil.hashPersonalMessage(Buffer.from(data.replace('0x', ''), 'hex'))
@@ -162,10 +144,13 @@ export abstract class CapsuleBaseSigner implements Signer {
     // return ethUtil.fromRpcSig(this.base64ToHex(signatureBase64))
   }
 
-  async signTypedData(
+  public async signTypedData(
     typedData: EIP712TypedData,
-    address: string = this.account
+    address: string | undefined = this.account
   ): Promise<{ v: number; r: Buffer; s: Buffer }> {
+    if (!address) {
+      throw Error('signTypedData invoked with incorrect address')
+    }
     Logger.info(`${TAG}@signTypedData`, address + ` Signing typed data`)
     const hash = generateTypedDataHash(typedData)
     const tx = hash.toString('base64')
@@ -174,7 +159,7 @@ export abstract class CapsuleBaseSigner implements Signer {
     const walletId = await this.getWallet(this.userId, address)
     Logger.info(`${TAG}@signTypedData`, 'walletId ' + walletId)
 
-    const res = await this.prepSignMessage(this.userId, walletId, tx)
+    const res = await this.preSignMessage(this.userId, walletId, tx)
     Logger.info(`${TAG}@signTypedData`, 'protocolId ' + res.protocolId)
     Logger.info(`${TAG}@signTypedData`, `transaction ` + tx)
     const keyshare = await this.keyshareStorage?.getPrivateKey()
@@ -189,29 +174,46 @@ export abstract class CapsuleBaseSigner implements Signer {
     return fromRpcSig(signatureHex)
   }
 
-  getNativeKey = () => this.account
+  public getNativeKey(): string {
+    if (!this.account) {
+      throw new Error('Native key not set')
+    }
+    return this.account
+  }
 
-  async decrypt(ciphertext: Buffer): Promise<Buffer> {
+  public async decrypt(ciphertext: Buffer): Promise<Buffer> {
     // TODO
     return Buffer.from('', 'base64')
   }
 
-  async computeSharedSecret(publicKey: string): Promise<Buffer> {
+  public async computeSharedSecret(publicKey: string): Promise<Buffer> {
     // TODO
     return Buffer.from('', 'base64')
   }
 
-  hexToBase64(hex: string) {
-    return Buffer.from(hex.replace('0x', ''), 'hex').toString('base64')
+  // --------------------------
+
+  private async getWallet(userId: string, address: string): Promise<any> {
+    const response = await requestAndReauthenticate(
+      () => userManagementClient.getWallets(userId),
+      this.ensureSessionActive
+    )
+    for (const wallet of response.data.wallets) {
+      if (wallet.address && wallet.address.toLowerCase() == address.toLowerCase()) {
+        return wallet.id
+      }
+    }
+    return undefined
   }
 
-  base64ToHex(base64: string) {
-    return ensureLeading0x(Buffer.from(base64, 'base64').toString('hex'))
-  }
-}
-
-export class CapsuleReactNativeSigner extends CapsuleBaseSigner {
-  protected getPrivateKeyStorage(account: string): PrivateKeyStorage {
-    return new PrivateKeyStorageReactNative(account)
+  private async preSignMessage(userId: string, walletId: string, tx: string): Promise<any> {
+    try {
+      return await requestAndReauthenticate(
+        () => userManagementClient.preSignMessage(userId, walletId, tx),
+        this.ensureSessionActive
+      )
+    } catch (err) {
+      Logger.debug(TAG, 'CAPSULE ERROR ', err)
+    }
   }
 }
