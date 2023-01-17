@@ -326,7 +326,7 @@ export function* createAndAssignCapsuleAccount() {
     Logger.debug(TAG + '@createAndAssignCapsuleAccount', 'Got wallet')
     let account = ''
     try {
-      yield call([wallet, wallet.initBiometrics])
+      yield call([wallet, wallet.initSessionManagement])
       account = yield call([wallet, wallet.addAccount], undefined, (recoveryKeyshare) =>
         // TODO: send it e.g., via e-mail to the user
         Logger.info(`RECOVERY: ${recoveryKeyshare}`)
