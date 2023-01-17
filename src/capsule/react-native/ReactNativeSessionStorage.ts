@@ -6,11 +6,11 @@ import DeviceCrypto, {
 // @ts-ignore
 import EllipticSignature from 'elliptic/lib/elliptic/ec/signature'
 import { ec } from 'elliptic'
-import { ChallengeStorage, Signature } from '../ChallengeStorage'
+import { SessionStorage, Signature } from '../SessionStorage'
 const PEM_HEADER = '-----BEGIN PUBLIC KEY-----'
 const PEM_FOOTER = '-----END PUBLIC KEY-----'
 
-export class ReactNativeChallengeStorage extends ChallengeStorage {
+export class ReactNativeSessionStorage extends SessionStorage {
   protected signOptions(): BiometryParams {
     return {
       biometryTitle: 'Authenticate',

@@ -7,8 +7,8 @@ import { ErrorMessages } from 'src/app/ErrorMessages'
 import { CapsuleBaseSigner } from 'src/capsule/CapsuleSigner'
 import Logger from 'src/utils/Logger'
 import { SignersStorage } from './SignersStorage'
-import { ChallengeStorage } from './ChallengeStorage'
-import BiometricSessionManager from './BiometricSessionManager'
+import { SessionStorage } from './SessionStorage'
+import SessionManager from './SessionManager'
 
 const TAG = 'geth/CapsuleWallet'
 
@@ -16,7 +16,7 @@ export abstract class CapsuleBaseWallet
   extends RemoteWallet<CapsuleBaseSigner>
   implements UnlockableWallet {
   private signersStorage = this.getSignersStorage()
-  private biometricSessionManager: BiometricSessionManager | undefined
+  private sessionManager: SessionManager | undefined
 
   // ------------- Platform-specific functionalities -------------
   /**
@@ -36,11 +36,11 @@ export abstract class CapsuleBaseWallet
   ): CapsuleBaseSigner
 
   /**
-   * Get storage instance for persisting biometrics and signing messages.
+   * Get storage instance for persisting session public key and signing messages.
    * @param userId
    * @protected
    */
-  protected abstract getChallengeStorage(userId: string): ChallengeStorage
+  protected abstract getChallengeStorage(userId: string): SessionStorage
 
   /**
    * Getter for user id as we do not require its presence while creating wallet.
@@ -51,12 +51,12 @@ export abstract class CapsuleBaseWallet
   // ------------- Public methods -------------
 
   /**
-   * Send a biometric public key to the server to allow session refreshing.
+   * Send a public key to the server to allow session refreshing.
    * Requires usedId to be initialized.
    */
-  public async initBiometrics() {
-    await this.initBiometricSessionManagerIfNeeded()
-    await this.biometricSessionManager!.setBiometrics()
+  public async initSessionManagement() {
+    await this.initSessionManagerIfNeeded()
+    await this.sessionManager!.setSessionKey()
   }
 
   /**
@@ -148,22 +148,19 @@ export abstract class CapsuleBaseWallet
   // --------------------------
 
   // We initialize the manager late to ensure the userID is available.
-  private async initBiometricSessionManagerIfNeeded() {
-    if (!this.biometricSessionManager) {
+  private async initSessionManagerIfNeeded() {
+    if (!this.sessionManager) {
       const userId = await this.getUserId()
       if (!userId) {
-        throw Error('UserId not available during initializing biometrics')
+        throw Error('UserId not available during initializing session key')
       }
-      this.biometricSessionManager = new BiometricSessionManager(
-        userId,
-        this.getChallengeStorage(userId)
-      )
+      this.sessionManager = new SessionManager(userId, this.getChallengeStorage(userId))
     }
   }
 
   private async ensureSessionActive() {
-    await this.initBiometricSessionManagerIfNeeded()
-    await this.biometricSessionManager!.refreshBiometricsIfNeeded()
+    await this.initSessionManagerIfNeeded()
+    await this.sessionManager!.refreshSessionIfNeeded()
   }
 
   async loadAccountSigners(): Promise<Map<string, CapsuleBaseSigner>> {

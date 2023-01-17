@@ -1,11 +1,11 @@
 import { CapsuleBaseSigner } from '../CapsuleSigner'
 import { SignersStorage } from '../SignersStorage'
-import { ChallengeStorage } from '../ChallengeStorage'
+import { SessionStorage } from '../SessionStorage'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { CapsuleBaseWallet } from '../CapsuleWallet'
 import { ReactNativeCapsuleSigner } from './ReactNativeCapsuleSigner'
 import { ReactNativeSignersStorage } from './ReactNativeSignersStorage'
-import { ReactNativeChallengeStorage } from './ReactNativeChallengeStorage'
+import { ReactNativeSessionStorage } from './ReactNativeSessionStorage'
 
 export const USER_ID_TAG = '@CAPSULE/USER_ID'
 
@@ -18,8 +18,8 @@ export class ReactNativeCapsuleWallet extends CapsuleBaseWallet {
     return new ReactNativeSignersStorage()
   }
 
-  getChallengeStorage(userId: string): ChallengeStorage {
-    return new ReactNativeChallengeStorage(userId)
+  getChallengeStorage(userId: string): SessionStorage {
+    return new ReactNativeSessionStorage(userId)
   }
 
   async getUserId(): Promise<string> {

@@ -2,7 +2,7 @@
 // @ts-ignore
 import EllipticSignature from 'elliptic/lib/elliptic/ec/signature'
 
-export abstract class ChallengeStorage {
+export abstract class SessionStorage {
   protected userId: string
 
   // returns public key and generates pair (if needed)
