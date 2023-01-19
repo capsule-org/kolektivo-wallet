@@ -84,7 +84,7 @@ export abstract class CapsuleBaseSigner implements Signer {
     return userPrivateKeyshare
   }
 
-  public async getKeyshare(): Promise<string | undefined> {
+  public async getKeyshare(): Promise<string | null | undefined> {
     return await this.keyshareStorage?.getPrivateKey()
   }
 
