@@ -3,12 +3,13 @@ import { normalizeAddressWith0x } from '@celo/base/lib/address'
 import { CeloTx, RLPEncodedTx, Signer } from '@celo/connect'
 import { EIP712TypedData, generateTypedDataHash } from '@celo/utils/lib/sign-typed-data-utils'
 import { encodeTransaction, extractSignature, rlpEncodedTx } from '@celo/wallet-base'
+import * as ethUtil from 'ethereumjs-util'
 import { fromRpcSig } from 'ethereumjs-util'
 import { NativeModules } from 'react-native'
 import Logger from 'src/utils/Logger'
+import { base64ToHex, hexToBase64 } from './helpers'
 import { PrivateKeyStorage } from './PrivateKeyStorage'
 import userManagementClient from './UserManagementClient'
-import { base64ToHex, hexToBase64 } from './helpers'
 
 const { CapsuleSignerModule } = NativeModules
 
@@ -137,11 +138,12 @@ export abstract class CapsuleBaseSigner implements Signer {
   }
 
   public async signPersonalMessage(data: string): Promise<{ v: number; r: Buffer; s: Buffer }> {
-    throw new Error('Not implemented')
-    // Logger.info(`${TAG}@signPersonalMessage`, `Signing ${data}`)
-    // const hash = ethUtil.hashPersonalMessage(Buffer.from(data.replace('0x', ''), 'hex'))
-    // const signatureBase64 = await this.geth.signHash(hash.toString('base64'), this.account)
-    // return ethUtil.fromRpcSig(this.base64ToHex(signatureBase64))
+    if (!this.account) {
+      throw Error('signPersonalMessage invoked with incorrect address')
+    }
+    Logger.info(`${TAG}@signPersonalMessage`, `Signing ${data}`)
+    const hash = ethUtil.hashPersonalMessage(Buffer.from(data.replace('0x', ''), 'hex'))
+    return this.signHash(hash.toString('base64'), this.account)
   }
 
   public async signTypedData(
@@ -153,25 +155,7 @@ export abstract class CapsuleBaseSigner implements Signer {
     }
     Logger.info(`${TAG}@signTypedData`, address + ` Signing typed data`)
     const hash = generateTypedDataHash(typedData)
-    const tx = hash.toString('base64')
-    Logger.info(`${TAG}@signTypedData transaction `, tx)
-
-    const walletId = await this.getWallet(this.userId, address)
-    Logger.info(`${TAG}@signTypedData`, 'walletId ' + walletId)
-
-    const res = await this.preSignMessage(this.userId, walletId, tx)
-    Logger.info(`${TAG}@signTypedData`, 'protocolId ' + res.protocolId)
-    Logger.info(`${TAG}@signTypedData`, `transaction ` + tx)
-    const keyshare = await this.keyshareStorage?.getPrivateKey()
-    const signatureHex = await CapsuleSignerModule.sendTransaction(res.protocolId, keyshare, tx)
-
-    Logger.info(
-      `${TAG}@signTypedData`,
-      'SIGNATURE: ',
-      signatureHex,
-      JSON.stringify(fromRpcSig(signatureHex))
-    )
-    return fromRpcSig(signatureHex)
+    return this.signHash(hash.toString('base64'), address)
   }
 
   public getNativeKey(): string {
@@ -215,5 +199,26 @@ export abstract class CapsuleBaseSigner implements Signer {
     } catch (err) {
       Logger.debug(TAG, 'CAPSULE ERROR ', err)
     }
+  }
+  private async signHash(
+    hash: string,
+    address: string
+  ): Promise<{ v: number; r: Buffer; s: Buffer }> {
+    const walletId = await this.getWallet(this.userId, address)
+    Logger.info(`${TAG}@signHash`, 'walletId ' + walletId)
+
+    const res = await this.preSignMessage(this.userId, walletId, hash)
+    Logger.info(`${TAG}@signHash`, 'protocolId ' + res.protocolId)
+    Logger.info(`${TAG}@signHash`, `hash ` + hash)
+    const keyshare = await this.keyshareStorage?.getPrivateKey()
+    const signatureHex = await CapsuleSignerModule.sendTransaction(res.protocolId, keyshare, hash)
+
+    Logger.info(
+      `${TAG}@signHash`,
+      'SIGNATURE: ',
+      signatureHex,
+      JSON.stringify(fromRpcSig(signatureHex))
+    )
+    return fromRpcSig(signatureHex)
   }
 }
