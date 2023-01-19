@@ -17,12 +17,14 @@ const completeFlowWithServer = async () => {
   await userManagementClient.verifyEmail(userId, { verificationCode: '123456' })
   const storage = new ReactNativeSessionStorage(userId)
 
-  await userManagementClient.addBiometrics(userId, { publicKey: await storage.getPublicKey() })
-  const challenge = await userManagementClient.getBiometricsChallenge(userId)
+  await userManagementClient.addSessionPublicKey(userId, {
+    publicKey: await storage.getPublicKey(),
+  })
+  const challenge = await userManagementClient.getSessionChallenge(userId)
   const message = challenge.data.challenge
   const signature = await storage.signChallenge(message)
 
-  const res = await userManagementClient.verifyBiometricsChallenge(userId, {
+  const res = await userManagementClient.verifySessionChallenge(userId, {
     signature,
   })
   if (res.status === 200) {
