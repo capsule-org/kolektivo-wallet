@@ -3,12 +3,12 @@ import { EIP712TypedData } from '@celo/utils/lib/sign-typed-data-utils'
 import { UnlockableWallet } from '@celo/wallet-base'
 import { RemoteWallet } from '@celo/wallet-remote'
 import * as ethUtil from 'ethereumjs-util'
-import { ErrorMessages } from 'src/app/ErrorMessages'
-import { CapsuleBaseSigner } from 'src/capsule/CapsuleSigner'
-import Logger from 'src/utils/Logger'
+import { ErrorMessages } from 'ErrorMessages'
+import { CapsuleBaseSigner } from 'CapsuleSigner'
 import { SignersStorage } from './SignersStorage'
 import { SessionStorage } from './SessionStorage'
 import SessionManager from './SessionManager'
+import { Logger } from 'Logger'
 
 const TAG = 'geth/CapsuleWallet'
 
@@ -17,6 +17,12 @@ export abstract class CapsuleBaseWallet
   implements UnlockableWallet {
   private signersStorage = this.getSignersStorage()
   private sessionManager: SessionManager | undefined
+  private logger: Logger | undefined
+
+  constructor(logger?: Logger) {
+    super()
+    this.logger = logger
+  }
 
   // ------------- Platform-specific functionalities -------------
   /**
@@ -72,12 +78,12 @@ export abstract class CapsuleBaseWallet
     const userId = await this.getUserId()
     const signer = this.getCapsuleSigner(userId, () => this.ensureSessionActive())
     if (!privateKey) {
-      Logger.info(`${TAG}@addAccount`, `Creating a new account`)
+      this.logger?.info(`${TAG}@addAccount`, `Creating a new account`)
       privateKey = await signer.generateKeyshare(onRecoveryKeyshare)
-      Logger.info(`${TAG}@addAccount`, privateKey)
+      this.logger?.info(`${TAG}@addAccount`, privateKey)
       await signer.loadKeyshare(privateKey)
     } else {
-      Logger.info(`${TAG}@addAccount`, `Adding a previously created account`)
+      this.logger?.info(`${TAG}@addAccount`, `Adding a previously created account`)
       await signer.loadKeyshare(privateKey)
     }
 
@@ -86,7 +92,7 @@ export abstract class CapsuleBaseWallet
     }
 
     this.addSigner(signer.getNativeKey(), signer)
-    Logger.info(`${TAG}@addAccount`, `Account added`)
+    this.logger?.info(`${TAG}@addAccount`, `Account added`)
     const nativeKey = signer.getNativeKey()
     await this.signersStorage.addAccount(nativeKey)
     return nativeKey
@@ -94,7 +100,7 @@ export abstract class CapsuleBaseWallet
 
   // TODO generate a session token for the wallet
   public async unlockAccount(account: string, passphrase: string, duration: number) {
-    Logger.info(`${TAG}@unlockAccount`, `Unlocking ${account}`)
+    this.logger?.info(`${TAG}@unlockAccount`, `Unlocking ${account}`)
     return true
   }
 
@@ -109,7 +115,7 @@ export abstract class CapsuleBaseWallet
    * @dev overrides WalletBase.signTransaction
    */
   public async signTransaction(txParams: CeloTx) {
-    Logger.info(`${TAG}@signTransaction`, `Signing transaction: ${JSON.stringify(txParams)}`)
+    this.logger?.info(`${TAG}@signTransaction`, `Signing transaction: ${JSON.stringify(txParams)}`)
     // Get the signer from the 'from' field
     const fromAddress = txParams.from!.toString()
     const signer = this.getSigner(fromAddress)
@@ -123,7 +129,7 @@ export abstract class CapsuleBaseWallet
    * @dev overrides WalletBase.signTypedData
    */
   public async signTypedData(address: string, typedData: EIP712TypedData): Promise<string> {
-    Logger.info(
+    this.logger?.info(
       `${TAG}@signTypedData`,
       `Signing typed DATA: ${JSON.stringify({ address, typedData })}`
     )
@@ -139,7 +145,7 @@ export abstract class CapsuleBaseWallet
   async getKeyshare(address: string): Promise<string> {
     const keyshare = await this.getSigner(address).getKeyshare()
     if (!keyshare) {
-      Logger.error(`${TAG}@addAccount`, `Missing private key`)
+      this.logger?.error(`${TAG}@addAccount`, `Missing private key`)
       throw new Error(ErrorMessages.CAPSULE_UNEXPECTED_ADDRESS)
     }
     return keyshare!
