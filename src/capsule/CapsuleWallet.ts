@@ -92,6 +92,15 @@ export abstract class CapsuleBaseWallet
     return nativeKey
   }
 
+  public async refresh(
+    address: string,
+    keyshare: string,
+    onRecoveryKeyshare: (keyshare: string) => void
+  ) {
+    const signer = this.getSigner(address)
+    await signer.refreshKeyshare(keyshare, address, onRecoveryKeyshare)
+  }
+
   // TODO generate a session token for the wallet
   public async unlockAccount(account: string, passphrase: string, duration: number) {
     Logger.info(`${TAG}@unlockAccount`, `Unlocking ${account}`)

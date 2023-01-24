@@ -85,6 +85,37 @@ export abstract class CapsuleBaseSigner implements Signer {
     return userPrivateKeyshare
   }
 
+  public async refreshKeyshare(
+    recoveryKeyshare: string,
+    address: string,
+    onRecoveryKeyshare: (keyshare: string) => void
+  ): Promise<string> {
+    const walletId = await this.getWallet(this.userId, address)
+
+    const walletInfo = await requestAndReauthenticate(
+      () => userManagementClient.refreshKeys(this.userId, walletId),
+      this.ensureSessionActive
+    )
+
+    const userKeyshare = await this.getKeyshare()
+    if (!userKeyshare) {
+      throw new Error('No user keyshare provided')
+    }
+
+    const keyshares = await Promise.all([
+      CapsuleSignerModule.refresh(walletInfo.data.protocolId, recoveryKeyshare),
+      CapsuleSignerModule.refresh(walletInfo.data.protocolId, userKeyshare),
+    ])
+
+    const userPrivateKeyshare = keyshares[0]
+    const recoveryPrivateKeyShare = keyshares[1]
+
+    this.keyshareStorage?.setPrivateKey(userPrivateKeyshare)
+    onRecoveryKeyshare(recoveryPrivateKeyShare)
+
+    return userPrivateKeyshare
+  }
+
   public async getKeyshare(): Promise<string | null | undefined> {
     return await this.keyshareStorage?.getPrivateKey()
   }
