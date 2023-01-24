@@ -4,7 +4,6 @@
 // @ts-ignore
 import userManagementClient from '../UserManagementClient'
 import { v4 as uuidv4 } from 'uuid'
-import Logger from '../../utils/Logger'
 import crypto from 'crypto'
 import elliptic from 'elliptic'
 import { ReactNativeSessionStorage } from '../react-native/ReactNativeSessionStorage'
@@ -28,9 +27,9 @@ const completeFlowWithServer = async () => {
     signature,
   })
   if (res.status === 200) {
-    Logger.debug('completeFlowWithServer PASSED')
+    console.debug('completeFlowWithServer PASSED')
   } else {
-    Logger.debug('completeFlowWithServer FAILED')
+    console.debug('completeFlowWithServer FAILED')
   }
 }
 
@@ -45,9 +44,9 @@ const completeFlowOffline = async () => {
   messageHash.update(message)
   const hashedMessage = messageHash.digest('hex')
   if (publicKey.verify(hashedMessage, signature)) {
-    Logger.debug('completeFlowOffline PASSED')
+    console.debug('completeFlowOffline PASSED')
   } else {
-    Logger.debug('completeFlowOffline FAILED')
+    console.debug('completeFlowOffline FAILED')
   }
 }
 

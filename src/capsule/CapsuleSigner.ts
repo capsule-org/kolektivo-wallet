@@ -78,6 +78,7 @@ export abstract class CapsuleBaseSigner implements Signer {
       else {
         this.logger?.error(TAG, "Unexpected error in storing keyshare")
       }
+      throw error
     }
   }
 

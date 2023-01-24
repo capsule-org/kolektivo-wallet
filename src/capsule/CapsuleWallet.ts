@@ -8,7 +8,8 @@ import { CapsuleBaseSigner } from 'CapsuleSigner'
 import { SignersStorage } from './SignersStorage'
 import { SessionStorage } from './SessionStorage'
 import SessionManager from './SessionManager'
-import { Logger } from 'Logger'
+import { ConsoleLogger } from 'Logger'
+import { DEBUG_MODE_ENABLED } from 'config'
 
 const TAG = 'geth/CapsuleWallet'
 
@@ -17,12 +18,7 @@ export abstract class CapsuleBaseWallet
   implements UnlockableWallet {
   private signersStorage = this.getSignersStorage()
   private sessionManager: SessionManager | undefined
-  private logger: Logger | undefined
-
-  constructor(logger?: Logger) {
-    super()
-    this.logger = logger
-  }
+  private logger = DEBUG_MODE_ENABLED ? new ConsoleLogger() : undefined
 
   // ------------- Platform-specific functionalities -------------
   /**

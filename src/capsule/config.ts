@@ -5,6 +5,7 @@ export const networkLoadBalancer =
 export const userManagementServer =
   'http://usermanagementloadbalancer-461184073.us-west-1.elb.amazonaws.com/'
 const { CapsuleSignerModule } = NativeModules
+export const DEBUG_MODE_ENABLED = false
 
 function init() {
   CapsuleSignerModule.setServerUrl(networkLoadBalancer)

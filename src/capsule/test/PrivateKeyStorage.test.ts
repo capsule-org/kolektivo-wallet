@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from 'uuid'
-import Logger from '../../utils/Logger'
 import { ReactNativePrivateKeyStorage } from '../react-native/ReactNativePrivateKeyStorage'
 
 const privateKeyStoringFlow = async () => {
@@ -8,9 +7,9 @@ const privateKeyStoringFlow = async () => {
   await storage.setPrivateKey(key)
   const obtainedKey = await storage.getPrivateKey()
   if (obtainedKey === key) {
-    Logger.debug('privateKeyStoringFlow PASSED')
+    console.debug('privateKeyStoringFlow PASSED')
   } else {
-    Logger.debug('privateKeyStoringFlow FAILED')
+    console.debug('privateKeyStoringFlow FAILED')
   }
 }
 
