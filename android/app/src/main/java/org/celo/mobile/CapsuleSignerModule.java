@@ -81,4 +81,16 @@ public class CapsuleSignerModule extends ReactContextBaseJavaModule {
       )
     ).start();
   }
+
+  @ReactMethod
+  public void refresh(String protocolId, String serializedSigner, Promise promise) {
+    (
+      new Thread(
+        () -> {
+          String res = Signer.refresh(serverUrl, serializedSigner, protocolId);
+          promise.resolve(res);
+        }
+      )
+    ).start();
+  }
 }
