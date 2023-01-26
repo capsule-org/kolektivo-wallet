@@ -1,0 +1,52 @@
+name: Test
+
+on:
+  # Run on pushes to main..
+  push:
+    branches:
+      - main
+  # ..and any pull request.
+  pull_request:
+
+# Cancel any in progress run of the workflow for a given PR
+# This avoids building outdated code
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  mobile:
+    name: Mobile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          check-latest: true
+      - uses: actions/cache@v2
+        with:
+          path: |
+            node_modules
+            */*/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - name: Install Yarn dependencies
+        run: yarn || yarn
+      - name: Build
+        run: yarn build
+      - name: Update RootStateSchema if necessary
+        run: yarn test:update-root-state-schema
+      - name: Fail if someone forgot to commit "RootStateSchema.json"
+        run: git diff --exit-code
+      - name: Run mobile tests
+        run: |
+          mkdir -p test-results/jest
+          yarn test:ci
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v2
+        with:
+          path: coverage/lcov-report
+      - name: 'Upload to Codecov'
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

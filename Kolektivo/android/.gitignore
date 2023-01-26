@@ -1,0 +1,8 @@
+# keys
+**/google-services*.json
+sentry.properties
+
+*.hprof
+
+# Copied during postinstall
+app/src/main/assets/custom/LicenseDisclaimer.txt

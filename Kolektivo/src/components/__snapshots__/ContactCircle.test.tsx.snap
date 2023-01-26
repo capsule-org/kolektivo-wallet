@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ContactCircle when given recipient with only address uses DefaultAvatar svg 1`] = `
+<View
+  style={
+    Array [
+      Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "center",
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      Array [
+        Object {
+          "alignItems": "center",
+          "justifyContent": "center",
+        },
+        Object {
+          "backgroundColor": "hsl(291, 53%, 93%)",
+          "borderRadius": 15,
+          "height": 30,
+          "width": 30,
+        },
+      ]
+    }
+  >
+    <svg
+      fill="hsl(291, 53%, 93%)"
+      height="40"
+      style={Object {}}
+      viewBox="0 0 40 40"
+      width="40"
+    />
+  </View>
+</View>
+`;

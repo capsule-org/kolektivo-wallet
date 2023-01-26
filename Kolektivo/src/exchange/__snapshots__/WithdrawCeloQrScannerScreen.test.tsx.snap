@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WithdrawCeloQrScannerScreen renders correctly 1`] = `
+<View
+  androidCameraPermissionOptions={null}
+  barCodeTypes={
+    Array [
+      undefined,
+    ]
+  }
+  captureAudio={false}
+  notAuthorizedView={<NotAuthorizedView />}
+  onBarCodeRead={[Function]}
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "hidden",
+    }
+  }
+  testID="Camera"
+/>
+`;
