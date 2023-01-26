@@ -3,7 +3,6 @@ import {
     Encrypt as ECIESEncrypt,
   } from '@celo/utils/lib/ecies'
 import { randomBytes } from 'crypto'
-import { ensureLeading0x } from '@celo/utils/lib/address'
 
 const EC = require('elliptic').ec
 const ec = new EC('secp256k1')
@@ -33,13 +32,19 @@ export class KeyContainer {
 
     getPublicDecryptionKey(): Buffer {
         const privKey = ec.keyFromPrivate(this.backupDecryptionKey)
-        const pubKey = ensureLeading0x(privKey.getPublic(true, 'hex'))
-        return Buffer.from(ec.keyFromPublic(pubKey).getPublic(false, 'hex'), 'hex').slice(1)
+        const pubKey = privKey.getPublic(false, 'hex')
+        return Buffer.from(pubKey, 'hex')
     }
+
+    decompressPublicKey(publicKey: Buffer): Buffer {
+        const EC = require('elliptic').ec
+        const ec = new EC('secp256k1')
+        return Buffer.from(ec.keyFromPublic(publicKey).getPublic(false, 'hex'), 'hex').subarray(1)
+      }
 
     encryptForSelf(backup: string): EncryptionStatus {
         try {
-            const pubkey = this.getPublicDecryptionKey()
+            const pubkey = this.decompressPublicKey(this.getPublicDecryptionKey())
             const data = ECIESEncrypt(pubkey, Buffer.from(backup, 'ucs2')).toString('base64')
             return {
             success: true,
