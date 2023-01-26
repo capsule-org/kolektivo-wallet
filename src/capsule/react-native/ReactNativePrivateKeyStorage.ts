@@ -1,6 +1,5 @@
 import { PrivateKeyStorage } from '../PrivateKeyStorage'
 import Keychain from 'react-native-keychain'
-import Logger from '../../utils/Logger'
 
 const KEYCHAIN_USER_CANCELLED_ERRORS = [
   'user canceled the operation',
@@ -15,19 +14,14 @@ export function isUserCancelledError(error: Error) {
 }
 
 export async function storeItem(key: string, value: string, options: Keychain.Options = {}) {
-  try {
-    const result = await Keychain.setGenericPassword('@CAPSULE', value, {
-      service: key,
-      accessible: Keychain.ACCESSIBLE.ALWAYS_THIS_DEVICE_ONLY,
-      rules: Keychain.SECURITY_RULES.NONE,
-      ...options,
-    })
-    if (result === false) {
-      throw new Error('Store result false')
-    }
-  } catch (error) {
-    Logger.error(TAG, 'Error storing item', error, true, value)
-    throw error
+  const result = await Keychain.setGenericPassword('@CAPSULE', value, {
+    service: key,
+    accessible: Keychain.ACCESSIBLE.ALWAYS_THIS_DEVICE_ONLY,
+    rules: Keychain.SECURITY_RULES.NONE,
+    ...options,
+  })
+  if (result === false) {
+    throw new Error('Failed to store key ' + key)
   }
 }
 
@@ -42,9 +36,9 @@ export async function retrieveStoredItem(key: string, options: Keychain.Options 
     }
     return item.password
   } catch (error) {
-    if (!isUserCancelledError(error)) {
+    if (error instanceof Error && !isUserCancelledError(error)) {
       // triggered when biometry verification fails and user cancels the action
-      Logger.error(TAG, 'Error retrieving stored item', error, true)
+      throw new Error('Error retrieving stored item ' + error.message)
     }
     throw error
   }

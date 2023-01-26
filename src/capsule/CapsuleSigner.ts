@@ -5,8 +5,8 @@ import { EIP712TypedData, generateTypedDataHash } from '@celo/utils/lib/sign-typ
 import { encodeTransaction, extractSignature, rlpEncodedTx } from '@celo/wallet-base'
 import * as ethUtil from 'ethereumjs-util'
 import { fromRpcSig } from 'ethereumjs-util'
+import { Logger } from 'Logger'
 import { NativeModules } from 'react-native'
-import Logger from 'src/utils/Logger'
 import { base64ToHex, hexToBase64 } from './helpers'
 import { PrivateKeyStorage } from './PrivateKeyStorage'
 import userManagementClient from './UserManagementClient'
@@ -26,7 +26,7 @@ async function requestAndReauthenticate<T>(
 ): Promise<T> {
   try {
     return await request()
-  } catch (e) {
+  } catch (e: any) {
     const { data } = e.response
     if (data === USER_NOT_MATCHING_ERROR || data === USER_NOT_AUTHENTICATED_ERROR) {
       await reauthenticate()
@@ -44,10 +44,12 @@ export abstract class CapsuleBaseSigner implements Signer {
   private readonly userId: string
   private keyshareStorage: PrivateKeyStorage | undefined
   private ensureSessionActive: () => Promise<void>
+  private logger: Logger | undefined
 
-  constructor(userId: string, ensureSessionActive: () => Promise<void>) {
+  constructor(userId: string, ensureSessionActive: () => Promise<void>, logger?: Logger) {
     this.userId = userId
     this.ensureSessionActive = ensureSessionActive
+    this.logger = logger
   }
 
   // ------------- Platform-specific functionalities -------------
@@ -66,7 +68,18 @@ export abstract class CapsuleBaseSigner implements Signer {
       throw Error('loadKeyshare needs to be preceded with setting valid account id.')
     }
     this.keyshareStorage = this.getPrivateKeyStorage(this.account)
-    await this.keyshareStorage.setPrivateKey(keyshare)
+    try {
+      await this.keyshareStorage.setPrivateKey(keyshare)
+    }
+    catch (error) {
+      if (error instanceof Error) {
+        this.logger?.error(TAG, "Failed to set keyshare", error)
+      }
+      else {
+        this.logger?.error(TAG, "Unexpected error in storing keyshare")
+      }
+      throw error
+    }
   }
 
   public async generateKeyshare(onRecoveryKeyshare?: (keyshare: string) => void): Promise<string> {
@@ -117,7 +130,18 @@ export abstract class CapsuleBaseSigner implements Signer {
   }
 
   public async getKeyshare(): Promise<string | null | undefined> {
-    return await this.keyshareStorage?.getPrivateKey()
+    try {
+      return await this.keyshareStorage?.getPrivateKey()
+    }
+    catch (error) {
+      if (error instanceof Error) {
+        this.logger?.error(TAG, "Failed to get keyshare", error)
+      }
+      else {
+        this.logger?.error(TAG, "Unexpected error in retreiving keyshare")
+      }
+      return undefined
+    }
   }
 
   public setNativeKey(nativeKey: string) {
@@ -131,7 +155,7 @@ export abstract class CapsuleBaseSigner implements Signer {
   }
 
   public async signRawTransaction(tx: CeloTx) {
-    if (!this.keyshareStorage?.getPrivateKey() || !this.account) {
+    if (!this.getKeyshare() || !this.account) {
       throw new Error(
         'Cannot signRawTransaction from CapsuleSigner before keygeneration or initialization'
       )
@@ -158,10 +182,10 @@ export abstract class CapsuleBaseSigner implements Signer {
     }
 
     const protocolId = CapsuleSignerModule.getProtocolId()
-    Logger.debug(TAG, 'signTransaction Capsule protocolId', protocolId)
-    Logger.debug(TAG, 'signTransaction Capsule tx', hexToBase64(encodedTx.rlpEncode))
+    this.logger?.debug(TAG, 'signTransaction Capsule protocolId', protocolId)
+    this.logger?.debug(TAG, 'signTransaction Capsule tx', hexToBase64(encodedTx.rlpEncode))
     const signedTxBase64 = await CapsuleSignerModule.sendTransaction(
-      this.keyshareStorage?.getPrivateKey(),
+      this.getKeyshare(),
       protocolId,
       hexToBase64(encodedTx.rlpEncode)
     )
@@ -172,7 +196,7 @@ export abstract class CapsuleBaseSigner implements Signer {
     if (!this.account) {
       throw Error('signPersonalMessage invoked with incorrect address')
     }
-    Logger.info(`${TAG}@signPersonalMessage`, `Signing ${data}`)
+    this.logger?.info(`${TAG}@signPersonalMessage`, `Signing ${data}`)
     const hash = ethUtil.hashPersonalMessage(Buffer.from(data.replace('0x', ''), 'hex'))
     return this.signHash(hash.toString('base64'), this.account)
   }
@@ -184,7 +208,7 @@ export abstract class CapsuleBaseSigner implements Signer {
     if (!address) {
       throw Error('signTypedData invoked with incorrect address')
     }
-    Logger.info(`${TAG}@signTypedData`, address + ` Signing typed data`)
+    this.logger?.info(`${TAG}@signTypedData`, address + ` Signing typed data`)
     const hash = generateTypedDataHash(typedData)
     return this.signHash(hash.toString('base64'), address)
   }
@@ -228,7 +252,7 @@ export abstract class CapsuleBaseSigner implements Signer {
         this.ensureSessionActive
       )
     } catch (err) {
-      Logger.debug(TAG, 'CAPSULE ERROR ', err)
+      this.logger?.debug(TAG, 'CAPSULE ERROR ', err)
     }
   }
   private async signHash(
@@ -236,20 +260,21 @@ export abstract class CapsuleBaseSigner implements Signer {
     address: string
   ): Promise<{ v: number; r: Buffer; s: Buffer }> {
     const walletId = await this.getWallet(this.userId, address)
-    Logger.info(`${TAG}@signHash`, 'walletId ' + walletId)
+    this.logger?.info(`${TAG}@signHash`, 'walletId ' + walletId)
 
     const res = await this.preSignMessage(this.userId, walletId, hash)
-    Logger.info(`${TAG}@signHash`, 'protocolId ' + res.protocolId)
-    Logger.info(`${TAG}@signHash`, `hash ` + hash)
-    const keyshare = await this.keyshareStorage?.getPrivateKey()
+    this.logger?.info(`${TAG}@signHash`, 'protocolId ' + res.protocolId)
+    this.logger?.info(`${TAG}@signHash`, `hash ` + hash)
+    const keyshare = await this.getKeyshare()
     const signatureHex = await CapsuleSignerModule.sendTransaction(res.protocolId, keyshare, hash)
 
-    Logger.info(
+    this.logger?.info(
       `${TAG}@signHash`,
       'SIGNATURE: ',
       signatureHex,
       JSON.stringify(fromRpcSig(signatureHex))
     )
-    return fromRpcSig(signatureHex)
+    const signature = fromRpcSig(signatureHex)
+    return { v: signature.v, r: signature.r, s: signature.s }
   }
 }
