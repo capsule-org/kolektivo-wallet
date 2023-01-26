@@ -1,7 +1,5 @@
 import { CeloTx } from '@celo/connect'
 import { EIP712TypedData } from '@celo/utils/lib/sign-typed-data-utils'
-import { UnlockableWallet } from '@celo/wallet-base'
-import { RemoteWallet } from '@celo/wallet-remote'
 import * as ethUtil from 'ethereumjs-util'
 import { ErrorMessages } from 'ErrorMessages'
 import { CapsuleBaseSigner } from 'CapsuleSigner'
@@ -13,9 +11,8 @@ import { DEBUG_MODE_ENABLED } from 'config'
 
 const TAG = 'geth/CapsuleWallet'
 
-export abstract class CapsuleBaseWallet
-  extends RemoteWallet<CapsuleBaseSigner>
-  implements UnlockableWallet {
+export abstract class CapsuleBaseWallet {
+  private signer: CapsuleBaseSigner | undefined
   private signersStorage = this.getSignersStorage()
   private sessionManager: SessionManager | undefined
   private logger = DEBUG_MODE_ENABLED ? new ConsoleLogger() : undefined
@@ -67,42 +64,38 @@ export abstract class CapsuleBaseWallet
    * @param privateKey
    * @param onRecoveryKeyshare
    */
-  public async addAccount(
-    privateKey?: string | undefined,
-    onRecoveryKeyshare?: (keyshare: string) => void
+  public async createAccount(onRecoveryKeyshare: (keyshare: string) => void): Promise<string> {
+    this.logger?.info(`${TAG}@addAccount`, `Creating a new account`)
+    const signer = await this.getSigner()
+    const address = await signer.generateKeyshare(onRecoveryKeyshare)
+
+    this.logger?.info(`${TAG}@addAccount`, `Keyshare succesfully created`)
+    await this.signersStorage.addAccount(address)
+    return address
+  }
+
+  /**
+   * @returns The addresses of all accounts that have been created with this wallet
+   */
+  public async getAccounts(): Promise<string[]> {
+    return this.signersStorage.getAccounts()
+  }
+
+  /**
+   * Add account to the wallet. Once initialized with a keyhare, the account is imported to the wallet.
+   * If the keyshare is not provided, the new key account is generated and the recovery keyshare returned with a callback.
+   * @param privateKey
+   * @param onRecoveryKeyshare
+   */
+  public async importAccount(
+    keyshare: string
   ): Promise<string> {
-    const userId = await this.getUserId()
-    const signer = this.getCapsuleSigner(userId, () => this.ensureSessionActive())
-    if (!privateKey) {
-      this.logger?.info(`${TAG}@addAccount`, `Creating a new account`)
-      privateKey = await signer.generateKeyshare(onRecoveryKeyshare)
-      this.logger?.info(`${TAG}@addAccount`, privateKey)
-      await signer.loadKeyshare(privateKey)
-    } else {
-      this.logger?.info(`${TAG}@addAccount`, `Adding a previously created account`)
-      await signer.loadKeyshare(privateKey)
-    }
-
-    if (this.hasAccount(signer.getNativeKey())) {
-      throw new Error(ErrorMessages.CAPSULE_ACCOUNT_ALREADY_EXISTS)
-    }
-
-    this.addSigner(signer.getNativeKey(), signer)
-    this.logger?.info(`${TAG}@addAccount`, `Account added`)
-    const nativeKey = signer.getNativeKey()
-    await this.signersStorage.addAccount(nativeKey)
-    return nativeKey
-  }
-
-  // TODO generate a session token for the wallet
-  public async unlockAccount(account: string, passphrase: string, duration: number) {
-    this.logger?.info(`${TAG}@unlockAccount`, `Unlocking ${account}`)
-    return true
-  }
-
-  // TODO check session token validity
-  public isAccountUnlocked(address: string) {
-    return true
+    const signer = await this.getSigner()
+    const address = await signer.importKeyshare(keyshare)
+    
+    this.logger?.info(`${TAG}@importAccount`, `Keyshare succesfully imported`)
+    await this.signersStorage.addAccount(address)
+    return address
   }
 
   /**
@@ -114,8 +107,8 @@ export abstract class CapsuleBaseWallet
     this.logger?.info(`${TAG}@signTransaction`, `Signing transaction: ${JSON.stringify(txParams)}`)
     // Get the signer from the 'from' field
     const fromAddress = txParams.from!.toString()
-    const signer = this.getSigner(fromAddress)
-    return signer.signRawTransaction(txParams)
+    const signer = await this.getSigner()
+    return signer.signRawTransaction(fromAddress, txParams)
   }
 
   /**
@@ -129,8 +122,8 @@ export abstract class CapsuleBaseWallet
       `${TAG}@signTypedData`,
       `Signing typed DATA: ${JSON.stringify({ address, typedData })}`
     )
-    const signer = this.getSigner(address)
-    const { v, r, s } = await signer.signTypedData(typedData, address)
+    const signer = await this.getSigner()
+    const { v, r, s } = await signer.signTypedData(address, typedData)
     return ethUtil.toRpcSig(v, r, s)
   }
 
@@ -139,7 +132,8 @@ export abstract class CapsuleBaseWallet
    * @param address
    */
   async getKeyshare(address: string): Promise<string> {
-    const keyshare = await this.getSigner(address).getKeyshare()
+    const signer = await this.getSigner()
+    const keyshare = await signer.getKeyshare(address)
     if (!keyshare) {
       this.logger?.error(`${TAG}@addAccount`, `Missing private key`)
       throw new Error(ErrorMessages.CAPSULE_UNEXPECTED_ADDRESS)
@@ -148,6 +142,17 @@ export abstract class CapsuleBaseWallet
   }
 
   // --------------------------
+
+  /**
+   * @returns Singleton instance of the Signer
+   */
+  private async getSigner(): Promise<CapsuleBaseSigner> {
+    if (!this.signer) {
+      const userId = await this.getUserId()
+      this.signer = await this.getCapsuleSigner(userId, () => this.ensureSessionActive())
+    }
+    return this.signer
+  }
 
   // We initialize the manager late to ensure the userID is available.
   private async initSessionManagerIfNeeded() {
@@ -163,17 +168,5 @@ export abstract class CapsuleBaseWallet
   private async ensureSessionActive() {
     await this.initSessionManagerIfNeeded()
     await this.sessionManager!.refreshSessionIfNeeded()
-  }
-
-  async loadAccountSigners(): Promise<Map<string, CapsuleBaseSigner>> {
-    const addressToSigner = new Map<string, CapsuleBaseSigner>()
-    const nativeKeys = await this.signersStorage.getAccounts()
-    for (const nativeKey of nativeKeys) {
-      const userId = await this.getUserId()
-      const signer = this.getCapsuleSigner(userId, () => this.ensureSessionActive())
-      signer.setNativeKey(nativeKey)
-      addressToSigner.set(nativeKey, signer)
-    }
-    return addressToSigner
   }
 }
