@@ -1,22 +1,17 @@
-import { NativeModules, Platform } from 'react-native';
+import {createUser, verifyEmail} from './helpers';
+import {
+  ReactNativeCapsuleWallet,
+  USER_ID_TAG,
+} from './react-native/ReactNativeCapsuleWallet';
+import {ReactNativeSignersStorage} from './react-native/ReactNativeSignersStorage';
 
-const LINKING_ERROR =
-  `The package '@capsule/react-native-wallet' doesn't seem to be linked. Make sure: \n\n` +
-  Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
-  '- You rebuilt the app after installing the package\n' +
-  '- You are not using Expo Go\n';
+import './test/KeyRefresh.test';
 
-const ReactNativeWallet = NativeModules.ReactNativeWallet
-  ? NativeModules.ReactNativeWallet
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
-
-export function multiply(a: number, b: number): Promise<number> {
-  return ReactNativeWallet.multiply(a, b);
-}
+// TODO export more
+export {
+  createUser,
+  verifyEmail,
+  ReactNativeSignersStorage,
+  ReactNativeCapsuleWallet,
+  USER_ID_TAG,
+};

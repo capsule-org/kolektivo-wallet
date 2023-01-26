@@ -1,3 +1,6 @@
+const path = require('path')
+const pak = require('../capsule/package.json')
+
 module.exports = {
   plugins: [
     [require('@babel/plugin-proposal-decorators').default, { legacy: true }],
@@ -12,6 +15,15 @@ module.exports = {
     '@babel/plugin-proposal-numeric-separator',
     'react-native-reanimated/plugin',
     // NOTE: Reanimated plugin has to be listed last.
+    [
+      'module-resolver',
+      {
+        extensions: ['.tsx', '.ts', '.js', '.json'],
+        alias: {
+          [pak.name]: path.join(__dirname, '..', 'capsule', pak.source),
+        },
+      },
+    ],
   ],
   presets: ['module:metro-react-native-babel-preset'],
 }
