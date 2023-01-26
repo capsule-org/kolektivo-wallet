@@ -1,13 +1,12 @@
 import { CeloTx } from '@celo/connect'
 import { EIP712TypedData } from '@celo/utils/lib/sign-typed-data-utils'
 import * as ethUtil from 'ethereumjs-util'
-import { ErrorMessages } from 'ErrorMessages'
-import { CapsuleBaseSigner } from 'CapsuleSigner'
+import { ErrorMessages } from './ErrorMessages'
+import { CapsuleBaseSigner } from './CapsuleSigner'
 import { SignersStorage } from './SignersStorage'
 import { SessionStorage } from './SessionStorage'
 import SessionManager from './SessionManager'
-import { ConsoleLogger } from 'Logger'
-import { DEBUG_MODE_ENABLED } from 'config'
+import { logger } from './Logger'
 
 const TAG = 'geth/CapsuleWallet'
 
@@ -15,7 +14,6 @@ export abstract class CapsuleBaseWallet {
   private signer: CapsuleBaseSigner | undefined
   private signersStorage = this.getSignersStorage()
   private sessionManager: SessionManager | undefined
-  private logger = DEBUG_MODE_ENABLED ? new ConsoleLogger() : undefined
 
   // ------------- Platform-specific functionalities -------------
   /**
@@ -65,13 +63,22 @@ export abstract class CapsuleBaseWallet {
    * @param onRecoveryKeyshare
    */
   public async createAccount(onRecoveryKeyshare: (keyshare: string) => void): Promise<string> {
-    this.logger?.info(`${TAG}@addAccount`, `Creating a new account`)
+    logger.info(`${TAG}@addAccount`, `Creating a new account`)
     const signer = await this.getSigner()
     const address = await signer.generateKeyshare(onRecoveryKeyshare)
 
-    this.logger?.info(`${TAG}@addAccount`, `Keyshare succesfully created`)
+    logger.info(`${TAG}@addAccount`, `Keyshare succesfully created`)
     await this.signersStorage.addAccount(address)
     return address
+  }
+
+  public async refresh(
+    address: string,
+    keyshare: string,
+    onRecoveryKeyshare: (keyshare: string) => void
+  ) {
+    const signer = await this.getSigner()
+    await signer.refreshKeyshare(keyshare, address, onRecoveryKeyshare)
   }
 
   /**
@@ -93,7 +100,7 @@ export abstract class CapsuleBaseWallet {
     const signer = await this.getSigner()
     const address = await signer.importKeyshare(keyshare)
     
-    this.logger?.info(`${TAG}@importAccount`, `Keyshare succesfully imported`)
+    logger.info(`${TAG}@importAccount`, `Keyshare succesfully imported`)
     await this.signersStorage.addAccount(address)
     return address
   }
@@ -104,7 +111,7 @@ export abstract class CapsuleBaseWallet {
    * @dev overrides WalletBase.signTransaction
    */
   public async signTransaction(txParams: CeloTx) {
-    this.logger?.info(`${TAG}@signTransaction`, `Signing transaction: ${JSON.stringify(txParams)}`)
+    logger.info(`${TAG}@signTransaction`, `Signing transaction: ${JSON.stringify(txParams)}`)
     // Get the signer from the 'from' field
     const fromAddress = txParams.from!.toString()
     const signer = await this.getSigner()
@@ -118,7 +125,7 @@ export abstract class CapsuleBaseWallet {
    * @dev overrides WalletBase.signTypedData
    */
   public async signTypedData(address: string, typedData: EIP712TypedData): Promise<string> {
-    this.logger?.info(
+    logger.info(
       `${TAG}@signTypedData`,
       `Signing typed DATA: ${JSON.stringify({ address, typedData })}`
     )
@@ -135,7 +142,7 @@ export abstract class CapsuleBaseWallet {
     const signer = await this.getSigner()
     const keyshare = await signer.getKeyshare(address)
     if (!keyshare) {
-      this.logger?.error(`${TAG}@addAccount`, `Missing private key`)
+      logger.error(`${TAG}@addAccount`, `Missing private key`)
       throw new Error(ErrorMessages.CAPSULE_UNEXPECTED_ADDRESS)
     }
     return keyshare!
