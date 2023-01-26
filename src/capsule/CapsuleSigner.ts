@@ -70,13 +70,11 @@ export abstract class CapsuleBaseSigner implements Signer {
     this.keyshareStorage = this.getPrivateKeyStorage(this.account)
     try {
       await this.keyshareStorage.setPrivateKey(keyshare)
-    }
-    catch (error) {
+    } catch (error) {
       if (error instanceof Error) {
-        this.logger?.error(TAG, "Failed to set keyshare", error)
-      }
-      else {
-        this.logger?.error(TAG, "Unexpected error in storing keyshare")
+        this.logger?.error(TAG, 'Failed to set keyshare', error)
+      } else {
+        this.logger?.error(TAG, 'Unexpected error in storing keyshare')
       }
       throw error
     }
@@ -105,7 +103,7 @@ export abstract class CapsuleBaseSigner implements Signer {
   ): Promise<string> {
     const walletId = await this.getWallet(this.userId, address)
 
-    const walletInfo = await requestAndReauthenticate(
+    const refreshResult = await requestAndReauthenticate(
       () => userManagementClient.refreshKeys(this.userId, walletId),
       this.ensureSessionActive
     )
@@ -116,8 +114,8 @@ export abstract class CapsuleBaseSigner implements Signer {
     }
 
     const keyshares = await Promise.all([
-      CapsuleSignerModule.refresh(walletInfo.data.protocolId, recoveryKeyshare),
-      CapsuleSignerModule.refresh(walletInfo.data.protocolId, userKeyshare),
+      CapsuleSignerModule.refresh(refreshResult.data.protocolId, recoveryKeyshare),
+      CapsuleSignerModule.refresh(refreshResult.data.protocolId, userKeyshare),
     ])
 
     const userPrivateKeyshare = keyshares[0]
@@ -132,13 +130,11 @@ export abstract class CapsuleBaseSigner implements Signer {
   public async getKeyshare(): Promise<string | null | undefined> {
     try {
       return await this.keyshareStorage?.getPrivateKey()
-    }
-    catch (error) {
+    } catch (error) {
       if (error instanceof Error) {
-        this.logger?.error(TAG, "Failed to get keyshare", error)
-      }
-      else {
-        this.logger?.error(TAG, "Unexpected error in retreiving keyshare")
+        this.logger?.error(TAG, 'Failed to get keyshare', error)
+      } else {
+        this.logger?.error(TAG, 'Unexpected error in retreiving keyshare')
       }
       return undefined
     }
