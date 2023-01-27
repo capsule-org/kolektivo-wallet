@@ -22,8 +22,7 @@
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2DCD954D1E0B4F2C00145EB5 /* celoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* celoTests.m */; };
-		66E52F1E294A014000AAA1B6 /* signer.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66E52F1D294A014000AAA1B6 /* signer.xcframework */; };
-		66E52F21294B1A1800AAA1B6 /* CapsuleSignerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 66E52F20294A041B00AAA1B6 /* CapsuleSignerModule.m */; };
+		669C2B142982F4FD00D24C06 /* signer.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 669C2B132982F4FD00D24C06 /* signer.xcframework */; };
 		67911AC6D310414DAAC1498E /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = F3F5FA21E7EC46BBB744FE54 /* libz.tbd */; };
 		6844FCD52570513C0057A74F /* QBImagePicker.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6844FCD42570513C0057A74F /* QBImagePicker.storyboard */; };
 		6B7C5E7B8A4E4E689DF1F3E5 /* Kaleko105Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 065F627B18BA4163AF6D1552 /* Kaleko105Bold.ttf */; };
@@ -106,9 +105,7 @@
 		52986FC436824EF4ACA173A6 /* Kaleko105HeavyOblique.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Kaleko105HeavyOblique.ttf; path = ../fonts/Kaleko105HeavyOblique.ttf; sourceTree = "<group>"; };
 		542981E56D26EC8415ABBA8B /* Pods_celo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_celo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		552D44B34D6F40AC8FCE6DD7 /* Kaleko105LightOblique.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Kaleko105LightOblique.ttf; path = ../fonts/Kaleko105LightOblique.ttf; sourceTree = "<group>"; };
-		66E52F1D294A014000AAA1B6 /* signer.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = signer.xcframework; path = "../../go-sdk/signer/signer.xcframework"; sourceTree = "<group>"; };
-		66E52F1F294A03E500AAA1B6 /* CapsuleSignerModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CapsuleSignerModule.h; sourceTree = "<group>"; };
-		66E52F20294A041B00AAA1B6 /* CapsuleSignerModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CapsuleSignerModule.m; sourceTree = "<group>"; };
+		669C2B132982F4FD00D24C06 /* signer.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = signer.xcframework; path = "../../../go-sdk/signer/signer.xcframework"; sourceTree = "<group>"; };
 		6844FCD42570513C0057A74F /* QBImagePicker.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = QBImagePicker.storyboard; path = "../node_modules/react-native-image-crop-picker/ios/QBImagePicker/QBImagePicker/QBImagePicker.storyboard"; sourceTree = "<group>"; };
 		68B737FF27D7B55B0044A85E /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		7B783F0C3B38F7E684A17616 /* Pods_NotificationService.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NotificationService.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -143,7 +140,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				66E52F1E294A014000AAA1B6 /* signer.xcframework in Frameworks */,
+				669C2B142982F4FD00D24C06 /* signer.xcframework in Frameworks */,
 				AEAA18ED5A5DDD81F4536E0C /* Pods_NotificationService.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -194,7 +191,7 @@
 		080C3131575C4BB58D359856 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				66E52F1D294A014000AAA1B6 /* signer.xcframework */,
+				669C2B132982F4FD00D24C06 /* signer.xcframework */,
 				F3F5FA21E7EC46BBB744FE54 /* libz.tbd */,
 				7B783F0C3B38F7E684A17616 /* Pods_NotificationService.framework */,
 				542981E56D26EC8415ABBA8B /* Pods_celo.framework */,
@@ -244,21 +241,11 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
-		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
-			isa = PBXGroup;
-			children = (
-				66E52F1F294A03E500AAA1B6 /* CapsuleSignerModule.h */,
-				66E52F20294A041B00AAA1B6 /* CapsuleSignerModule.m */,
-			);
-			name = Libraries;
-			sourceTree = "<group>";
-		};
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
 				6844FCD42570513C0057A74F /* QBImagePicker.storyboard */,
 				13B07FAE1A68108700A75B9A /* celo */,
-				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* celoTests */,
 				0F49F5EE270F2F2A0005F897 /* NotificationService */,
 				83CBBA001A601CBA00E9B192 /* Products */,
@@ -420,11 +407,9 @@
 					};
 					0F49F5EC270F2F2A0005F897 = {
 						CreatedOnToolsVersion = 12.5;
-						DevelopmentTeam = 48TPT4QN6K;
 						ProvisioningStyle = Automatic;
 					};
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = 48TPT4QN6K;
 						LastSwiftMigration = 1250;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
@@ -729,6 +714,7 @@
 				"${BUILT_PRODUCTS_DIR}/Toast/Toast.framework",
 				"${BUILT_PRODUCTS_DIR}/Yoga/yoga.framework",
 				"${BUILT_PRODUCTS_DIR}/YogaKit/YogaKit.framework",
+				"${BUILT_PRODUCTS_DIR}/capsule-react-native-wallet/capsule_react_native_wallet.framework",
 				"${BUILT_PRODUCTS_DIR}/clevertap-react-native/CleverTapReact.framework",
 				"${BUILT_PRODUCTS_DIR}/fmt/fmt.framework",
 				"${BUILT_PRODUCTS_DIR}/glog/glog.framework",
@@ -742,9 +728,9 @@
 				"${BUILT_PRODUCTS_DIR}/react-native-camera/react_native_camera.framework",
 				"${BUILT_PRODUCTS_DIR}/react-native-config/react_native_config.framework",
 				"${BUILT_PRODUCTS_DIR}/react-native-contacts/react_native_contacts.framework",
+				"${BUILT_PRODUCTS_DIR}/react-native-device-crypto/react_native_device_crypto.framework",
 				"${BUILT_PRODUCTS_DIR}/react-native-fast-crypto/react_native_fast_crypto.framework",
 				"${BUILT_PRODUCTS_DIR}/react-native-geolocation/react_native_geolocation.framework",
-				"${BUILT_PRODUCTS_DIR}/react-native-geth/react_native_geth.framework",
 				"${BUILT_PRODUCTS_DIR}/react-native-html-to-pdf/react_native_html_to_pdf.framework",
 				"${BUILT_PRODUCTS_DIR}/react-native-keep-awake/react_native_keep_awake.framework",
 				"${BUILT_PRODUCTS_DIR}/react-native-mail/react_native_mail.framework",
@@ -841,6 +827,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Toast.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/yoga.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/YogaKit.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/capsule_react_native_wallet.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CleverTapReact.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/fmt.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/glog.framework",
@@ -854,9 +841,9 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/react_native_camera.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/react_native_config.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/react_native_contacts.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/react_native_device_crypto.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/react_native_fast_crypto.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/react_native_geolocation.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/react_native_geth.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/react_native_html_to_pdf.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/react_native_keep_awake.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/react_native_mail.framework",
@@ -925,7 +912,6 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
 				0F3673F82673A63900F9586A /* File.swift in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
-				66E52F21294B1A1800AAA1B6 /* CapsuleSignerModule.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1137,7 +1123,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 48TPT4QN6K;
+				DEVELOPMENT_TEAM = Y958CAJS6X;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1150,7 +1136,7 @@
 				);
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID).NotificationService";
+				PRODUCT_BUNDLE_IDENTIFIER = "celo-x.NotificationService";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -1182,7 +1168,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 48TPT4QN6K;
+				DEVELOPMENT_TEAM = Y958CAJS6X;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = NotificationService/Info.plist;
@@ -1193,7 +1179,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID).NotificationService";
+				PRODUCT_BUNDLE_IDENTIFIER = "celo-x.NotificationService";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -1212,7 +1198,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 41;
 				DEAD_CODE_STRIPPING = NO;
-				DEVELOPMENT_TEAM = 48TPT4QN6K;
+				DEVELOPMENT_TEAM = Y958CAJS6X;
 				HEADER_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = celo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1229,7 +1215,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID)";
+				PRODUCT_BUNDLE_IDENTIFIER = "celo-x";
 				PRODUCT_NAME = celo;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "celo/celo-Bridging-Header.h";
@@ -1247,7 +1233,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = celo/celo.entitlements;
 				CURRENT_PROJECT_VERSION = 41;
-				DEVELOPMENT_TEAM = 48TPT4QN6K;
+				DEVELOPMENT_TEAM = Y958CAJS6X;
 				HEADER_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = celo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1264,7 +1250,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID)";
+				PRODUCT_BUNDLE_IDENTIFIER = "celo-x";
 				PRODUCT_NAME = celo;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "celo/celo-Bridging-Header.h";

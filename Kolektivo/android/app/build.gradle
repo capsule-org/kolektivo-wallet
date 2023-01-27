@@ -334,7 +334,7 @@ dependencies {
         exclude group:'com.facebook.flipper'
     }
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.8.1'
-    implementation files('../../../go-sdk/signer/signer.aar')
+    implementation files('../../../../go-sdk/signer/signer.aar')
 
   if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";
