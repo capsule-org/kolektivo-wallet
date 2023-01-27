@@ -1,4 +1,4 @@
-import { KeyContainer } from "KeyContainer"
+import { KeyContainer } from "../KeyContainer"
 
 const testWalletId = 'testWalletId'
 const testKeyshare = 'testKeyshare'
