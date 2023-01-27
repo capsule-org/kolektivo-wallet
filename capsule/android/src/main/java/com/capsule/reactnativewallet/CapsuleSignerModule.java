@@ -1,4 +1,4 @@
-package org.celo.mobile;
+package com.capsule.reactnativewallet;
 
 import android.util.Log;
 import com.facebook.react.bridge.NativeModule;
@@ -41,12 +41,27 @@ public class CapsuleSignerModule extends ReactContextBaseJavaModule {
    * @return
    */
   @ReactMethod
-  public void createAccount(String walletId, String protocolId, String id, Promise promise) {
-    String signerConfig = String.format(configBase, serverUrl, walletId, id, ids);
+  public void createAccount(
+    String walletId,
+    String protocolId,
+    String id,
+    Promise promise
+  ) {
+    String signerConfig = String.format(
+      configBase,
+      serverUrl,
+      walletId,
+      id,
+      ids
+    );
     (
       new Thread(
         () -> {
-          String res = Signer.createAccount(serverUrl, signerConfig, protocolId);
+          String res = Signer.createAccount(
+            serverUrl,
+            signerConfig,
+            protocolId
+          );
           promise.resolve(res);
         }
       )
@@ -75,7 +90,12 @@ public class CapsuleSignerModule extends ReactContextBaseJavaModule {
     (
       new Thread(
         () -> {
-          String res = Signer.sendTransaction(serverUrl, serializedSigner, transaction, protocolId);
+          String res = Signer.sendTransaction(
+            serverUrl,
+            serializedSigner,
+            transaction,
+            protocolId
+          );
           promise.resolve(res);
         }
       )
@@ -83,7 +103,11 @@ public class CapsuleSignerModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void refresh(String protocolId, String serializedSigner, Promise promise) {
+  public void refresh(
+    String protocolId,
+    String serializedSigner,
+    Promise promise
+  ) {
     (
       new Thread(
         () -> {
