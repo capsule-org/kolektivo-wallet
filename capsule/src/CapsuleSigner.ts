@@ -195,7 +195,7 @@ export abstract class CapsuleBaseSigner implements Signer {
   public async signTransaction(
     // addToV (chainId) is ignored here because geth will
     // build it based on its configuration
-    addToV: number,
+    _addToV: number,
     encodedTx: RLPEncodedTx
   ): Promise<{v: number; r: Buffer; s: Buffer}> {
     const {gasPrice} = encodedTx.transaction;
@@ -259,12 +259,12 @@ export abstract class CapsuleBaseSigner implements Signer {
     return this.account;
   }
 
-  public async decrypt(ciphertext: Buffer): Promise<Buffer> {
+  public async decrypt(_ciphertext: Buffer): Promise<Buffer> {
     // TODO
     return Buffer.from('', 'base64');
   }
 
-  public async computeSharedSecret(publicKey: string): Promise<Buffer> {
+  public async computeSharedSecret(_publicKey: string): Promise<Buffer> {
     // TODO
     return Buffer.from('', 'base64');
   }

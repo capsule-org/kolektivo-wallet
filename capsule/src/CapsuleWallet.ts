@@ -1,5 +1,4 @@
 import {CeloTx} from '@celo/connect';
-import {EIP712TypedData} from '@celo/utils/lib/sign-typed-data-utils';
 import {UnlockableWallet} from '@celo/wallet-base';
 import {RemoteWallet} from '@celo/wallet-remote';
 import * as ethUtil from 'ethereumjs-util';
@@ -9,6 +8,7 @@ import {SignersStorage} from './SignersStorage';
 import {SessionStorage} from './SessionStorage';
 import SessionManager from './SessionManager';
 import {logger} from './Logger';
+import {EIP712TypedData} from '@celo/utils/lib/sign-typed-data-utils';
 
 const TAG = 'geth/CapsuleWallet';
 
@@ -106,15 +106,15 @@ export abstract class CapsuleBaseWallet
   // TODO generate a session token for the wallet
   public async unlockAccount(
     account: string,
-    passphrase: string,
-    duration: number
+    _passphrase: string,
+    _duration: number
   ) {
     logger.info(`${TAG}@unlockAccount`, `Unlocking ${account}`);
     return true;
   }
 
   // TODO check session token validity
-  public isAccountUnlocked(address: string) {
+  public isAccountUnlocked(_address: string) {
     return true;
   }
 
