@@ -1,4 +1,4 @@
-import {PrivateKeyStorage} from '../PrivateKeyStorage';
+import { PrivateKeyStorage } from '../PrivateKeyStorage';
 import Keychain from 'react-native-keychain';
 
 const KEYCHAIN_USER_CANCELLED_ERRORS = [

@@ -2,8 +2,8 @@ import {
   USER_NOT_AUTHENTICATED_ERROR,
   USER_NOT_MATCHING_ERROR,
 } from '@capsule/client';
-import {normalizeAddressWith0x} from '@celo/base/lib/address';
-import {CeloTx, RLPEncodedTx, Signer} from '@celo/connect';
+import { normalizeAddressWith0x } from '@celo/base/lib/address';
+import { CeloTx, RLPEncodedTx, Signer } from '@celo/connect';
 import {
   EIP712TypedData,
   generateTypedDataHash,
@@ -14,14 +14,14 @@ import {
   rlpEncodedTx,
 } from '@celo/wallet-base';
 import * as ethUtil from 'ethereumjs-util';
-import {fromRpcSig} from 'ethereumjs-util';
-import {logger} from './Logger';
-import {NativeModules} from 'react-native';
-import {base64ToHex, hexToBase64} from './helpers';
-import {PrivateKeyStorage} from './PrivateKeyStorage';
+import { fromRpcSig } from 'ethereumjs-util';
+import { logger } from './Logger';
+import { NativeModules } from 'react-native';
+import { base64ToHex, hexToBase64 } from './helpers';
+import { PrivateKeyStorage } from './PrivateKeyStorage';
 import userManagementClient from './UserManagementClient';
 
-const {CapsuleSignerModule} = NativeModules;
+const { CapsuleSignerModule } = NativeModules;
 
 const TAG = 'geth/CapsuleSigner';
 
@@ -37,7 +37,7 @@ async function requestAndReauthenticate<T>(
   try {
     return await request();
   } catch (e: any) {
-    const {data} = e.response;
+    const { data } = e.response;
     if (
       data === USER_NOT_MATCHING_ERROR ||
       data === USER_NOT_AUTHENTICATED_ERROR
@@ -197,8 +197,8 @@ export abstract class CapsuleBaseSigner implements Signer {
     // build it based on its configuration
     _addToV: number,
     encodedTx: RLPEncodedTx
-  ): Promise<{v: number; r: Buffer; s: Buffer}> {
-    const {gasPrice} = encodedTx.transaction;
+  ): Promise<{ v: number; r: Buffer; s: Buffer }> {
+    const { gasPrice } = encodedTx.transaction;
     if (
       gasPrice === '0x0' ||
       gasPrice === '0x' ||
@@ -229,7 +229,7 @@ export abstract class CapsuleBaseSigner implements Signer {
 
   public async signPersonalMessage(
     data: string
-  ): Promise<{v: number; r: Buffer; s: Buffer}> {
+  ): Promise<{ v: number; r: Buffer; s: Buffer }> {
     if (!this.account) {
       throw Error('signPersonalMessage invoked with incorrect address');
     }
@@ -243,7 +243,7 @@ export abstract class CapsuleBaseSigner implements Signer {
   public async signTypedData(
     typedData: EIP712TypedData,
     address: string | undefined = this.account
-  ): Promise<{v: number; r: Buffer; s: Buffer}> {
+  ): Promise<{ v: number; r: Buffer; s: Buffer }> {
     if (!address) {
       throw Error('signTypedData invoked with incorrect address');
     }
@@ -304,7 +304,7 @@ export abstract class CapsuleBaseSigner implements Signer {
   private async signHash(
     hash: string,
     address: string
-  ): Promise<{v: number; r: Buffer; s: Buffer}> {
+  ): Promise<{ v: number; r: Buffer; s: Buffer }> {
     const walletId = await this.getWallet(this.userId, address);
     logger.info(`${TAG}@signHash`, 'walletId ' + walletId);
 
@@ -325,6 +325,6 @@ export abstract class CapsuleBaseSigner implements Signer {
       JSON.stringify(fromRpcSig(signatureHex))
     );
     const signature = fromRpcSig(signatureHex);
-    return {v: signature.v, r: signature.r, s: signature.s};
+    return { v: signature.v, r: signature.r, s: signature.s };
   }
 }

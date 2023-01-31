@@ -1,20 +1,21 @@
-import {CeloTx} from '@celo/connect';
-import {UnlockableWallet} from '@celo/wallet-base';
-import {RemoteWallet} from '@celo/wallet-remote';
+import { CeloTx } from '@celo/connect';
+import { UnlockableWallet } from '@celo/wallet-base';
+import { RemoteWallet } from '@celo/wallet-remote';
 import * as ethUtil from 'ethereumjs-util';
-import {ErrorMessages} from './ErrorMessages';
-import {CapsuleBaseSigner} from './CapsuleSigner';
-import {SignersStorage} from './SignersStorage';
-import {SessionStorage} from './SessionStorage';
+import { ErrorMessages } from './ErrorMessages';
+import { CapsuleBaseSigner } from './CapsuleSigner';
+import { SignersStorage } from './SignersStorage';
+import { SessionStorage } from './SessionStorage';
 import SessionManager from './SessionManager';
-import {logger} from './Logger';
-import {EIP712TypedData} from '@celo/utils/lib/sign-typed-data-utils';
+import { logger } from './Logger';
+import { EIP712TypedData } from '@celo/utils/lib/sign-typed-data-utils';
 
 const TAG = 'geth/CapsuleWallet';
 
 export abstract class CapsuleBaseWallet
   extends RemoteWallet<CapsuleBaseSigner>
-  implements UnlockableWallet {
+  implements UnlockableWallet
+{
   private signersStorage = this.getSignersStorage();
   private sessionManager: SessionManager | undefined;
 
@@ -147,10 +148,10 @@ export abstract class CapsuleBaseWallet
     this.getAccounts();
     logger.info(
       `${TAG}@signTypedData`,
-      `Signing typed DATA: ${JSON.stringify({address, typedData})}`
+      `Signing typed DATA: ${JSON.stringify({ address, typedData })}`
     );
     const signer = this.getSigner(address);
-    const {v, r, s} = await signer.signTypedData(typedData, address);
+    const { v, r, s } = await signer.signTypedData(typedData, address);
     return ethUtil.toRpcSig(v, r, s);
   }
 

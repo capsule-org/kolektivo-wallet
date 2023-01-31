@@ -1,5 +1,5 @@
-import {v4 as uuidv4} from 'uuid';
-import {ReactNativePrivateKeyStorage} from '../react-native/ReactNativePrivateKeyStorage';
+import { v4 as uuidv4 } from 'uuid';
+import { ReactNativePrivateKeyStorage } from '../react-native/ReactNativePrivateKeyStorage';
 
 const privateKeyStoringFlow = async () => {
   const storage = new ReactNativePrivateKeyStorage(uuidv4());

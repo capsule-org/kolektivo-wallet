@@ -5,8 +5,8 @@ import DeviceCrypto, {
 } from 'react-native-device-crypto';
 // @ts-ignore
 import EllipticSignature from 'elliptic/lib/elliptic/ec/signature';
-import {ec} from 'elliptic';
-import {SessionStorage, Signature} from '../SessionStorage';
+import { ec } from 'elliptic';
+import { SessionStorage, Signature } from '../SessionStorage';
 const PEM_HEADER = '-----BEGIN PUBLIC KEY-----';
 const PEM_FOOTER = '-----END PUBLIC KEY-----';
 

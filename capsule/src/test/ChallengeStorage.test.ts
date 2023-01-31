@@ -3,14 +3,14 @@
 
 // @ts-ignore
 import userManagementClient from '../UserManagementClient';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import elliptic from 'elliptic';
-import {ReactNativeSessionStorage} from '../react-native/ReactNativeSessionStorage';
+import { ReactNativeSessionStorage } from '../react-native/ReactNativeSessionStorage';
 const ecl = new elliptic.ec('p256');
 
 const completeFlowWithServer = async () => {
-  const {userId} = await userManagementClient.createUser({
+  const { userId } = await userManagementClient.createUser({
     email: `test-${uuidv4()}@test.usecapsule.com`,
   });
   await userManagementClient.verifyEmail(userId, {

@@ -1,5 +1,5 @@
 import userManagementClient from './UserManagementClient';
-import {SessionStorage} from './SessionStorage';
+import { SessionStorage } from './SessionStorage';
 
 export default class SessionManager {
   private userId: string;

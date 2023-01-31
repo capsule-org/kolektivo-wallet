@@ -1,6 +1,6 @@
 // @ts-ignore
 import userManagementClient from '../UserManagementClient';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ReactNativeCapsuleWallet,
@@ -8,7 +8,7 @@ import {
 } from '../react-native/ReactNativeCapsuleWallet';
 
 const keyRefreshFlow = async () => {
-  const {userId} = await userManagementClient.createUser({
+  const { userId } = await userManagementClient.createUser({
     email: `test-${uuidv4()}@test.usecapsule.com`,
   });
   await userManagementClient.verifyEmail(userId, {

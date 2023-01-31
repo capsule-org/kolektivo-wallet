@@ -1,4 +1,4 @@
-import {DEBUG_MODE_ENABLED} from './config';
+import { DEBUG_MODE_ENABLED } from './config';
 
 export interface Logger {
   debug: (tag: string, ...messages: any[]) => void;
