@@ -84,8 +84,18 @@ export abstract class CapsuleBaseSigner implements Signer {
       this.ensureSessionActive
     )
     const keyshares = await Promise.all([
-      CapsuleSignerModule.createAccount(walletInfo.walletId, walletInfo.protocolId, 'USER'),
-      CapsuleSignerModule.createAccount(walletInfo.walletId, walletInfo.protocolId, 'RECOVERY'),
+      CapsuleSignerModule.createAccount(
+        walletInfo.walletId,
+        walletInfo.protocolId,
+        'USER',
+        this.userId
+      ),
+      CapsuleSignerModule.createAccount(
+        walletInfo.walletId,
+        walletInfo.protocolId,
+        'RECOVERY',
+        this.userId
+      ),
     ])
 
     const userPrivateKeyshare = keyshares[0]
@@ -101,10 +111,13 @@ export abstract class CapsuleBaseSigner implements Signer {
   ): Promise<string> {
     const walletId = await this.getWallet(this.userId, address)
 
+    console.log('GGGGG1', this.userId, walletId)
     const refreshResult = await requestAndReauthenticate(
       () => userManagementClient.refreshKeys(this.userId, walletId),
       this.ensureSessionActive
     )
+
+    console.log('GGGGG2')
 
     const userKeyshare = await this.getKeyshare()
     if (!userKeyshare) {
@@ -112,8 +125,8 @@ export abstract class CapsuleBaseSigner implements Signer {
     }
 
     const keyshares = await Promise.all([
-      CapsuleSignerModule.refresh(refreshResult.data.protocolId, recoveryKeyshare),
-      CapsuleSignerModule.refresh(refreshResult.data.protocolId, userKeyshare),
+      CapsuleSignerModule.refresh(refreshResult.data.protocolId, recoveryKeyshare, this.userId),
+      CapsuleSignerModule.refresh(refreshResult.data.protocolId, userKeyshare, this.userId),
     ])
 
     const userPrivateKeyshare = keyshares[0]
@@ -181,7 +194,8 @@ export abstract class CapsuleBaseSigner implements Signer {
     const signedTxBase64 = await CapsuleSignerModule.sendTransaction(
       this.getKeyshare(),
       protocolId,
-      hexToBase64(encodedTx.rlpEncode)
+      hexToBase64(encodedTx.rlpEncode),
+      this.userId
     )
     return extractSignature(base64ToHex(signedTxBase64))
   }
@@ -260,7 +274,12 @@ export abstract class CapsuleBaseSigner implements Signer {
     logger.info(`${TAG}@signHash`, 'protocolId ' + res.protocolId)
     logger.info(`${TAG}@signHash`, `hash ` + hash)
     const keyshare = await this.getKeyshare()
-    const signatureHex = await CapsuleSignerModule.sendTransaction(res.protocolId, keyshare, hash)
+    const signatureHex = await CapsuleSignerModule.sendTransaction(
+      res.protocolId,
+      keyshare,
+      hash,
+      this.userId
+    )
 
     logger.info(
       `${TAG}@signHash`,
