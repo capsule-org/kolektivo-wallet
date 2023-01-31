@@ -131,7 +131,7 @@
     "npm": {
       "publish": true
     },
-    "github": {
+    "_github": {
       "release": true
     },
     "plugins": {

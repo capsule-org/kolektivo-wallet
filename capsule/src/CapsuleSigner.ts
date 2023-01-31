@@ -3,7 +3,12 @@ import {
   USER_NOT_MATCHING_ERROR,
 } from '@capsule/client';
 import { normalizeAddressWith0x } from '@celo/base/lib/address';
-import { CeloTx, RLPEncodedTx, Signer } from '@celo/connect';
+import {
+  CeloTx,
+  EncodedTransaction,
+  RLPEncodedTx,
+  Signer,
+} from '@celo/connect';
 import {
   EIP712TypedData,
   generateTypedDataHash,
@@ -176,7 +181,7 @@ export abstract class CapsuleBaseSigner implements Signer {
     this.account = normalizeAddressWith0x(address);
   }
 
-  public async signRawTransaction(tx: CeloTx) {
+  public async signRawTransaction(tx: CeloTx): Promise<EncodedTransaction> {
     if (!this.account) {
       throw new Error(
         'Cannot signRawTransaction from CapsuleSigner before keygeneration or initialization'
