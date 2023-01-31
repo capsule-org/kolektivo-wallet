@@ -34,6 +34,10 @@ public class CapsuleSignerModule extends ReactContextBaseJavaModule {
     this.serverUrl = serverUrl;
   }
 
+  private String getServerAddress(String userID) {
+    return String.format("%susers/%s/mpc-network", this.serverUrl, userID);
+  }
+
   /**
    * Perform distributed key generation with the Capsule server
    *
@@ -41,12 +45,28 @@ public class CapsuleSignerModule extends ReactContextBaseJavaModule {
    * @return
    */
   @ReactMethod
-  public void createAccount(String walletId, String protocolId, String id, Promise promise) {
-    String signerConfig = String.format(configBase, serverUrl, walletId, id, ids);
+  public void createAccount(
+    String walletId,
+    String protocolId,
+    String id,
+    String userId,
+    Promise promise
+  ) {
+    String signerConfig = String.format(
+      configBase,
+      this.getServerAddress(userId),
+      walletId,
+      id,
+      ids
+    );
     (
       new Thread(
         () -> {
-          String res = Signer.createAccount(serverUrl, signerConfig, protocolId);
+          String res = Signer.createAccount(
+            this.getServerAddress(userId),
+            signerConfig,
+            protocolId
+          );
           promise.resolve(res);
         }
       )
@@ -70,12 +90,18 @@ public class CapsuleSignerModule extends ReactContextBaseJavaModule {
     String protocolId,
     String serializedSigner,
     String transaction,
+    String userId,
     Promise promise
   ) {
     (
       new Thread(
         () -> {
-          String res = Signer.sendTransaction(serverUrl, serializedSigner, transaction, protocolId);
+          String res = Signer.sendTransaction(
+            this.getServerAddress(userId),
+            serializedSigner,
+            transaction,
+            protocolId
+          );
           promise.resolve(res);
         }
       )
@@ -83,11 +109,11 @@ public class CapsuleSignerModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void refresh(String protocolId, String serializedSigner, Promise promise) {
+  public void refresh(String protocolId, String serializedSigner, String userId, Promise promise) {
     (
       new Thread(
         () -> {
-          String res = Signer.refresh(serverUrl, serializedSigner, protocolId);
+          String res = Signer.refresh(this.getServerAddress(userId), serializedSigner, protocolId);
           promise.resolve(res);
         }
       )
