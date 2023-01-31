@@ -3,13 +3,12 @@ import { EIP712TypedData } from '@celo/utils/lib/sign-typed-data-utils'
 import { UnlockableWallet } from '@celo/wallet-base'
 import { RemoteWallet } from '@celo/wallet-remote'
 import * as ethUtil from 'ethereumjs-util'
-import { ErrorMessages } from 'ErrorMessages'
-import { CapsuleBaseSigner } from 'CapsuleSigner'
+import { ErrorMessages } from './ErrorMessages'
+import { CapsuleBaseSigner } from './CapsuleSigner'
 import { SignersStorage } from './SignersStorage'
 import { SessionStorage } from './SessionStorage'
 import SessionManager from './SessionManager'
-import { ConsoleLogger } from 'Logger'
-import { DEBUG_MODE_ENABLED } from 'config'
+import { logger } from './Logger'
 
 const TAG = 'geth/CapsuleWallet'
 
@@ -18,7 +17,6 @@ export abstract class CapsuleBaseWallet
   implements UnlockableWallet {
   private signersStorage = this.getSignersStorage()
   private sessionManager: SessionManager | undefined
-  private logger = DEBUG_MODE_ENABLED ? new ConsoleLogger() : undefined
 
   // ------------- Platform-specific functionalities -------------
   /**
@@ -74,12 +72,12 @@ export abstract class CapsuleBaseWallet
     const userId = await this.getUserId()
     const signer = this.getCapsuleSigner(userId, () => this.ensureSessionActive())
     if (!privateKey) {
-      this.logger?.info(`${TAG}@addAccount`, `Creating a new account`)
+      logger.info(`${TAG}@addAccount`, `Creating a new account`)
       privateKey = await signer.generateKeyshare(onRecoveryKeyshare)
-      this.logger?.info(`${TAG}@addAccount`, privateKey)
+      logger.info(`${TAG}@addAccount`, privateKey)
       await signer.loadKeyshare(privateKey)
     } else {
-      this.logger?.info(`${TAG}@addAccount`, `Adding a previously created account`)
+      logger.info(`${TAG}@addAccount`, `Adding a previously created account`)
       await signer.loadKeyshare(privateKey)
     }
 
@@ -88,15 +86,24 @@ export abstract class CapsuleBaseWallet
     }
 
     this.addSigner(signer.getNativeKey(), signer)
-    this.logger?.info(`${TAG}@addAccount`, `Account added`)
+    logger.info(`${TAG}@addAccount`, `Account added`)
     const nativeKey = signer.getNativeKey()
     await this.signersStorage.addAccount(nativeKey)
     return nativeKey
   }
 
+  public async refresh(
+    address: string,
+    keyshare: string,
+    onRecoveryKeyshare: (keyshare: string) => void
+  ) {
+    const signer = this.getSigner(address)
+    await signer.refreshKeyshare(keyshare, address, onRecoveryKeyshare)
+  }
+
   // TODO generate a session token for the wallet
   public async unlockAccount(account: string, passphrase: string, duration: number) {
-    this.logger?.info(`${TAG}@unlockAccount`, `Unlocking ${account}`)
+    logger.info(`${TAG}@unlockAccount`, `Unlocking ${account}`)
     return true
   }
 
@@ -111,7 +118,7 @@ export abstract class CapsuleBaseWallet
    * @dev overrides WalletBase.signTransaction
    */
   public async signTransaction(txParams: CeloTx) {
-    this.logger?.info(`${TAG}@signTransaction`, `Signing transaction: ${JSON.stringify(txParams)}`)
+    logger.info(`${TAG}@signTransaction`, `Signing transaction: ${JSON.stringify(txParams)}`)
     // Get the signer from the 'from' field
     const fromAddress = txParams.from!.toString()
     const signer = this.getSigner(fromAddress)
@@ -125,7 +132,8 @@ export abstract class CapsuleBaseWallet
    * @dev overrides WalletBase.signTypedData
    */
   public async signTypedData(address: string, typedData: EIP712TypedData): Promise<string> {
-    this.logger?.info(
+    this.getAccounts()
+    logger.info(
       `${TAG}@signTypedData`,
       `Signing typed DATA: ${JSON.stringify({ address, typedData })}`
     )
@@ -141,7 +149,7 @@ export abstract class CapsuleBaseWallet
   async getKeyshare(address: string): Promise<string> {
     const keyshare = await this.getSigner(address).getKeyshare()
     if (!keyshare) {
-      this.logger?.error(`${TAG}@addAccount`, `Missing private key`)
+      logger.error(`${TAG}@addAccount`, `Missing private key`)
       throw new Error(ErrorMessages.CAPSULE_UNEXPECTED_ADDRESS)
     }
     return keyshare!

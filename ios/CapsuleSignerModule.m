@@ -103,6 +103,7 @@ RCT_EXPORT_METHOD(sendTransaction:(NSString*)protocolId
   resolve(res);
 }
 
+
 RCT_EXPORT_METHOD(createAccount:(NSString *)walletId
                   protocolId:(NSString *)protocolId
                   shareType:(NSString *)shareType
