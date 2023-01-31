@@ -28,6 +28,7 @@ const keyRefreshFlow = async () => {
   const userShare = await wallet.getKeyshare(address);
 
   let newRecoveryShare = '';
+  await new Promise((resolve) => setTimeout(resolve, 3000));
 
   await wallet.refresh(address, recoveryShare, (share) => {
     newRecoveryShare = share;

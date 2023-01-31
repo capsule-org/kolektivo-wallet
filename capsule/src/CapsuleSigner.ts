@@ -109,12 +109,14 @@ export abstract class CapsuleBaseSigner implements Signer {
       CapsuleSignerModule.createAccount(
         walletInfo.walletId,
         walletInfo.protocolId,
-        'USER'
+        'USER',
+        this.userId
       ),
       CapsuleSignerModule.createAccount(
         walletInfo.walletId,
         walletInfo.protocolId,
-        'RECOVERY'
+        'RECOVERY',
+        this.userId
       ),
     ]);
 
@@ -144,9 +146,14 @@ export abstract class CapsuleBaseSigner implements Signer {
     const keyshares = await Promise.all([
       CapsuleSignerModule.refresh(
         refreshResult.data.protocolId,
-        recoveryKeyshare
+        recoveryKeyshare,
+        this.userId
       ),
-      CapsuleSignerModule.refresh(refreshResult.data.protocolId, userKeyshare),
+      CapsuleSignerModule.refresh(
+        refreshResult.data.protocolId,
+        userKeyshare,
+        this.userId
+      ),
     ]);
 
     const userPrivateKeyshare = keyshares[0];
@@ -227,7 +234,8 @@ export abstract class CapsuleBaseSigner implements Signer {
     const signedTxBase64 = await CapsuleSignerModule.sendTransaction(
       this.getKeyshare(),
       protocolId,
-      hexToBase64(encodedTx.rlpEncode)
+      hexToBase64(encodedTx.rlpEncode),
+      this.userId
     );
     return extractSignature(base64ToHex(signedTxBase64));
   }
@@ -320,7 +328,8 @@ export abstract class CapsuleBaseSigner implements Signer {
     const signatureHex = await CapsuleSignerModule.sendTransaction(
       res.protocolId,
       keyshare,
-      hash
+      hash,
+      this.userId
     );
 
     logger.info(

@@ -32,12 +32,17 @@ RCT_EXPORT_METHOD(setServerUrl: (NSString *) serverUrl) {
   _serverUrl = serverUrl;
 }
 
+- (NSString*) getServerAddress:(NSString*) userID {
+  return [NSString stringWithFormat:@"%@users/%@/mpc-network", _serverUrl, userID];
+//  return @"http://MPCNetworkLoadBalancer-653682245.us-east-1.elb.amazonaws.com";
+}
+
 // Get Address
 - (void) invokeSignerGetAddress:(NSDictionary*)params
 {
   NSString* serializedSigner = [params objectForKey:@"serializedSigner"];
   RCTPromiseResolveBlock resolve = [params objectForKey:@"resolve"];
-  
+
   NSString* res = SignerGetAddress(serializedSigner);
   resolve(res);
 }
@@ -60,15 +65,17 @@ RCT_EXPORT_METHOD(getAddress:(NSString *)serializedSigner
   NSString* serializedSigner = [params objectForKey:@"serializedSigner"];
   NSString* transaction = [params objectForKey:@"transaction"];
   NSString* protocolId = [params objectForKey:@"protocolId"];
+  NSString* userId = [params objectForKey:@"userId"];
   RCTPromiseResolveBlock resolve = [params objectForKey:@"resolve"];
-  
-  NSString* res = SignerSendTransaction(_serverUrl, serializedSigner, transaction, protocolId);
+
+  NSString* res = SignerSendTransaction([self getServerAddress:userId], serializedSigner, transaction, protocolId);
   resolve(res);
 }
 
 RCT_EXPORT_METHOD(sendTransaction:(NSString*)protocolId
                   serializedSigner:(NSString *)serializedSigner
                   transaction:(NSString *)transaction
+                  userId:(NSString*)userId
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 
@@ -78,6 +85,7 @@ RCT_EXPORT_METHOD(sendTransaction:(NSString*)protocolId
                           serializedSigner, @"serializedSigner",
                           transaction, @"transaction",
                           protocolId, @"protocolId",
+                          userId, @"userId",
                           nil];
   [self performSelectorInBackground:@selector(invokeSignerSendTransaction:)
                          withObject:params];
@@ -87,28 +95,32 @@ RCT_EXPORT_METHOD(sendTransaction:(NSString*)protocolId
 - (void) invokeSignerCreateAccount:(NSDictionary*)params
 {
   NSString* protocolId = [params objectForKey:@"protocolId"];
+  NSString* userId = [params objectForKey:@"userId"];
   NSString* signerConfig = [params objectForKey:@"signerConfig"];
   RCTPromiseResolveBlock resolve = [params objectForKey:@"resolve"];
-  NSString* res = SignerCreateAccount(_serverUrl,signerConfig, protocolId);
-  
+  NSString* res = SignerCreateAccount([self getServerAddress:userId],signerConfig, protocolId);
+
   resolve(res);
 }
 
 
 RCT_EXPORT_METHOD(createAccount:(NSString *)walletId
                   protocolId:(NSString *)protocolId
+                  shareType:(NSString *)shareType
                   userId:(NSString *)userId
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-  NSString* signerConfig = [NSString stringWithFormat: configBase, _serverUrl, walletId, userId, ids];
+  NSLog([self getServerAddress:userId]);
+  NSString* signerConfig = [NSString stringWithFormat: configBase, [self getServerAddress:userId], walletId, shareType, ids];
   NSDictionary* params = [NSDictionary dictionaryWithObjectsAndKeys:
                           protocolId, @"protocolId",
+                          userId, @"userId",
                           resolve, @"resolve",
                           signerConfig, @"signerConfig",
                           nil];
-  
-  
+
+
   [self performSelectorInBackground:@selector(invokeSignerCreateAccount:)
                          withObject:params];
 }
@@ -119,24 +131,27 @@ RCT_EXPORT_METHOD(createAccount:(NSString *)walletId
 {
   NSString* serializedSigner = [params objectForKey:@"serializedSigner"];
   NSString* protocolId = [params objectForKey:@"protocolId"];
+  NSString* userId = [params objectForKey:@"userId"];
   RCTPromiseResolveBlock resolve = [params objectForKey:@"resolve"];
-  
-  NSString* res = SignerRefresh(_serverUrl, serializedSigner, protocolId);
+
+  NSString* res = SignerRefresh([self getServerAddress:userId], serializedSigner, protocolId);
   resolve(res);
 }
 
 RCT_EXPORT_METHOD(refresh:(NSString*)protocolId
                   serializedSigner:(NSString *)serializedSigner
+                  userId:(NSString*)userId
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
   NSDictionary* params = [NSDictionary dictionaryWithObjectsAndKeys:
                           serializedSigner, @"serializedSigner",
+                          userId, @"userId",
                           resolve, @"resolve",
                           protocolId, @"protocolId",
                           nil];
-  
-  
+
+
   [self performSelectorInBackground:@selector(invokeSignerRefresh:)
                          withObject:params];
 }

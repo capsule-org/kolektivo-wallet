@@ -1,4 +1,4 @@
-package com.capsule.reactnativewallet;
+package org.celo.mobile;
 
 import android.util.Log;
 import com.facebook.react.bridge.NativeModule;
@@ -34,6 +34,10 @@ public class CapsuleSignerModule extends ReactContextBaseJavaModule {
     this.serverUrl = serverUrl;
   }
 
+  private String getServerAddress(String userID) {
+    return String.format("%susers/%s/mpc-network", this.serverUrl, userID);
+  }
+
   /**
    * Perform distributed key generation with the Capsule server
    *
@@ -45,11 +49,12 @@ public class CapsuleSignerModule extends ReactContextBaseJavaModule {
     String walletId,
     String protocolId,
     String id,
+    String userId,
     Promise promise
   ) {
     String signerConfig = String.format(
       configBase,
-      serverUrl,
+      this.getServerAddress(userId),
       walletId,
       id,
       ids
@@ -58,7 +63,7 @@ public class CapsuleSignerModule extends ReactContextBaseJavaModule {
       new Thread(
         () -> {
           String res = Signer.createAccount(
-            serverUrl,
+            this.getServerAddress(userId),
             signerConfig,
             protocolId
           );
@@ -85,13 +90,14 @@ public class CapsuleSignerModule extends ReactContextBaseJavaModule {
     String protocolId,
     String serializedSigner,
     String transaction,
+    String userId,
     Promise promise
   ) {
     (
       new Thread(
         () -> {
           String res = Signer.sendTransaction(
-            serverUrl,
+            this.getServerAddress(userId),
             serializedSigner,
             transaction,
             protocolId
@@ -103,15 +109,11 @@ public class CapsuleSignerModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void refresh(
-    String protocolId,
-    String serializedSigner,
-    Promise promise
-  ) {
+  public void refresh(String protocolId, String serializedSigner, String userId, Promise promise) {
     (
       new Thread(
         () -> {
-          String res = Signer.refresh(serverUrl, serializedSigner, protocolId);
+          String res = Signer.refresh(this.getServerAddress(userId), serializedSigner, protocolId);
           promise.resolve(res);
         }
       )

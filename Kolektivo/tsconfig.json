@@ -18,7 +18,7 @@
     "target": "es2015",
     "strict": true,
     "paths": {
-      "@capsule/react-native-wallet": ["../capsule/src"]
+      "@usecapsule/react-native-wallet": ["../capsule/src"]
     }
   },
   "include": ["src"],
