@@ -5,7 +5,7 @@ import {
 } from './react-native/ReactNativeCapsuleWallet';
 import { ReactNativeSignersStorage } from './react-native/ReactNativeSignersStorage';
 
-import './test/KeyRefresh.test';
+// import './test/KeyRefresh.test';
 
 // TODO export more
 export {
