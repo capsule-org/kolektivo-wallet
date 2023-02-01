@@ -1,4 +1,4 @@
-package org.celo.mobile;
+package com.capsule.reactnativewallet;
 
 import android.util.Log;
 import com.facebook.react.bridge.NativeModule;
