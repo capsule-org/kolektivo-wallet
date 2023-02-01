@@ -21,7 +21,7 @@ import NavigatorWrapper from 'src/navigator/NavigatorWrapper'
 import { waitUntilSagasFinishLoading } from 'src/redux/sagas'
 import { persistor, store } from 'src/redux/store'
 import Logger from 'src/utils/Logger'
-import "@usecapsule/react-native-wallet"
+// import "@usecapsule/react-native-wallet/test/KeyRefresh.test"
 Logger.debug('App/init', 'Current Language: ' + i18n.language)
 
 const ignoreWarnings = [
@@ -155,4 +155,4 @@ export class App extends React.Component<Props> {
   }
 }
 
-export default Sentry.wrap(() => null)
+export default Sentry.wrap(App)
