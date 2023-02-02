@@ -327,7 +327,7 @@ export function* createAndAssignCapsuleAccount() {
     let account = ''
     try {
       yield call([wallet, wallet.initSessionManagement])
-      account = yield call([wallet, wallet.addAccount], undefined, (recoveryKeyshare) =>
+      account = yield call([wallet, wallet.createAccount], (recoveryKeyshare) =>
         // TODO: send it e.g., via e-mail to the user
         Logger.info(`RECOVERY: ${recoveryKeyshare}`)
       )

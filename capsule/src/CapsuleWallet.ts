@@ -1,19 +1,19 @@
-import { CeloTx } from '@celo/connect'
-import { EIP712TypedData } from '@celo/utils/lib/sign-typed-data-utils'
-import * as ethUtil from 'ethereumjs-util'
-import { ErrorMessages } from './ErrorMessages'
-import { CapsuleBaseSigner } from './CapsuleSigner'
-import { SignersStorage } from './SignersStorage'
-import { SessionStorage } from './SessionStorage'
-import SessionManager from './SessionManager'
-import { logger } from './Logger'
+import {CeloTx} from '@celo/connect';
+import {EIP712TypedData} from '@celo/utils/lib/sign-typed-data-utils';
+import * as ethUtil from 'ethereumjs-util';
+import {ErrorMessages} from './ErrorMessages';
+import {CapsuleBaseSigner} from './CapsuleSigner';
+import {SignersStorage} from './SignersStorage';
+import {SessionStorage} from './SessionStorage';
+import SessionManager from './SessionManager';
+import {logger} from './Logger';
 
-const TAG = 'geth/CapsuleWallet'
+const TAG = 'geth/CapsuleWallet';
 
 export abstract class CapsuleBaseWallet {
-  private signer: CapsuleBaseSigner | undefined
-  private signersStorage = this.getSignersStorage()
-  private sessionManager: SessionManager | undefined
+  private signer: CapsuleBaseSigner | undefined;
+  private signersStorage = this.getSignersStorage();
+  private sessionManager: SessionManager | undefined;
 
   // ------------- Platform-specific functionalities -------------
   /**
@@ -56,20 +56,50 @@ export abstract class CapsuleBaseWallet {
     await this.sessionManager!.setSessionKey();
   }
 
+  public init() {
+    console.warn('No need to call init!');
+  }
+
+  public addAccount(privateKey: string) {
+    console.warn(
+      'addAccount is provided for backward compatibility, but use importAccount!'
+    );
+    this.importAccount(privateKey);
+  }
+
+  public async unlockAccount(
+    _account: string,
+    _passphrase: string,
+    _duration: number
+  ) {
+    console.warn(
+      'unlockAccount is provided for backward compatibility, but it is not used!'
+    );
+  }
+
+  public isAccountUnlocked(_address: string) {
+    console.warn(
+      'isAccountUnlocked is provided for backward compatibility, but it is not used!'
+    );
+    return true;
+  }
+
   /**
    * Add account to the wallet. Once initialized with a keyhare, the account is imported to the wallet.
    * If the keyshare is not provided, the new key account is generated and the recovery keyshare returned with a callback.
    * @param privateKey
    * @param onRecoveryKeyshare
    */
-  public async createAccount(onRecoveryKeyshare: (keyshare: string) => void): Promise<string> {
-    logger.info(`${TAG}@addAccount`, `Creating a new account`)
-    const signer = await this.getSigner()
-    const address = await signer.generateKeyshare(onRecoveryKeyshare)
+  public async createAccount(
+    onRecoveryKeyshare: (keyshare: string) => void
+  ): Promise<string> {
+    logger.info(`${TAG}@addAccount`, `Creating a new account`);
+    const signer = await this.getSigner();
+    const address = await signer.generateKeyshare(onRecoveryKeyshare);
 
-    logger.info(`${TAG}@addAccount`, `Keyshare succesfully created`)
-    await this.signersStorage.addAccount(address)
-    return address
+    logger.info(`${TAG}@addAccount`, `Keyshare succesfully created`);
+    await this.signersStorage.addAccount(address);
+    return address;
   }
 
   public async refresh(
@@ -77,15 +107,15 @@ export abstract class CapsuleBaseWallet {
     keyshare: string,
     onRecoveryKeyshare: (keyshare: string) => void
   ) {
-    const signer = await this.getSigner()
-    await signer.refreshKeyshare(keyshare, address, onRecoveryKeyshare)
+    const signer = await this.getSigner();
+    await signer.refreshKeyshare(keyshare, address, onRecoveryKeyshare);
   }
 
   /**
    * @returns The addresses of all accounts that have been created with this wallet
    */
   public async getAccounts(): Promise<string[]> {
-    return this.signersStorage.getAccounts()
+    return this.signersStorage.getAccounts();
   }
 
   /**
@@ -94,15 +124,13 @@ export abstract class CapsuleBaseWallet {
    * @param privateKey
    * @param onRecoveryKeyshare
    */
-  public async importAccount(
-    keyshare: string
-  ): Promise<string> {
-    const signer = await this.getSigner()
-    const address = await signer.importKeyshare(keyshare)
-    
-    logger.info(`${TAG}@importAccount`, `Keyshare succesfully imported`)
-    await this.signersStorage.addAccount(address)
-    return address
+  public async importAccount(keyshare: string): Promise<string> {
+    const signer = await this.getSigner();
+    const address = await signer.importKeyshare(keyshare);
+
+    logger.info(`${TAG}@importAccount`, `Keyshare succesfully imported`);
+    await this.signersStorage.addAccount(address);
+    return address;
   }
 
   /**
@@ -116,9 +144,9 @@ export abstract class CapsuleBaseWallet {
       `Signing transaction: ${JSON.stringify(txParams)}`
     );
     // Get the signer from the 'from' field
-    const fromAddress = txParams.from!.toString()
-    const signer = await this.getSigner()
-    return signer.signRawTransaction(fromAddress, txParams)
+    const fromAddress = txParams.from!.toString();
+    const signer = await this.getSigner();
+    return signer.signRawTransaction(fromAddress, txParams);
   }
 
   /**
@@ -127,14 +155,18 @@ export abstract class CapsuleBaseWallet {
    * @param typedData The data to sign
    * @dev overrides WalletBase.signTypedData
    */
-  public async signTypedData(address: string, typedData: EIP712TypedData): Promise<string> {
+  public async signTypedData(
+    address: string,
+    typedData: EIP712TypedData
+  ): Promise<string> {
     logger.info(
       `${TAG}@signTypedData`,
-      `Signing typed DATA: ${JSON.stringify({ address, typedData })}`
-    )
-    const signer = await this.getSigner()
-    const { v, r, s } = await signer.signTypedData(address, typedData)
-    return ethUtil.toRpcSig(v, r, s)
+      `Signing typed DATA: ${JSON.stringify({address, typedData})}`
+    );
+    const signer = await this.getSigner();
+    const {v, r, s} = await signer.signTypedData(address, typedData);
+    logger.info(`${TAG}@signTypedData - result`, {v, r, s});
+    return ethUtil.toRpcSig(v, r, s);
   }
 
   /**
@@ -142,8 +174,8 @@ export abstract class CapsuleBaseWallet {
    * @param address
    */
   async getKeyshare(address: string): Promise<string> {
-    const signer = await this.getSigner()
-    const keyshare = await signer.getKeyshare(address)
+    const signer = await this.getSigner();
+    const keyshare = await signer.getKeyshare(address);
     if (!keyshare) {
       logger.error(`${TAG}@addAccount`, `Missing private key`);
       throw new Error(ErrorMessages.CAPSULE_UNEXPECTED_ADDRESS);
@@ -158,10 +190,12 @@ export abstract class CapsuleBaseWallet {
    */
   private async getSigner(): Promise<CapsuleBaseSigner> {
     if (!this.signer) {
-      const userId = await this.getUserId()
-      this.signer = await this.getCapsuleSigner(userId, () => this.ensureSessionActive())
+      const userId = await this.getUserId();
+      this.signer = await this.getCapsuleSigner(userId, () =>
+        this.ensureSessionActive()
+      );
     }
-    return this.signer
+    return this.signer;
   }
 
   // We initialize the manager late to ensure the userID is available.
