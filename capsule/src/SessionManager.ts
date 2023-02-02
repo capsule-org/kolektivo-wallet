@@ -23,6 +23,7 @@ export default class SessionManager {
     const signature = await this.sessionStorage.signChallenge(message);
     await userManagementClient.verifySessionChallenge(this.userId, {
       signature,
+      publicKey: await this.sessionStorage.getPublicKey(),
     });
   }
 }
