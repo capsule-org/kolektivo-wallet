@@ -5,7 +5,7 @@ class TestSignerModule implements SignerModule {
   createAccount(
     walletId: string,
     protocolId: string,
-    keyType: KeyType
+    keyType: typeof KeyType[keyof typeof KeyType]
   ): Promise<string> {
     throw new Error('Method not implemented.');
   }
