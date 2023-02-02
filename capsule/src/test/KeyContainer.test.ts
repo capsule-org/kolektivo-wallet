@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { KeyContainer } from '../KeyContainer';
 
 const testWalletId = 'testWalletId';

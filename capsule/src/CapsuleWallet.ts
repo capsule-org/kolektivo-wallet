@@ -1,4 +1,4 @@
-import { CeloTx } from '@celo/connect';
+import { CeloTx, EncodedTransaction } from '@celo/connect';
 import { EIP712TypedData } from '@celo/utils/lib/sign-typed-data-utils';
 import * as ethUtil from 'ethereumjs-util';
 import { ErrorMessages } from './ErrorMessages';
@@ -180,7 +180,7 @@ export abstract class CapsuleBaseWallet {
    * @param txParams Transaction to sign
    * @dev overrides WalletBase.signTransaction
    */
-  public async signTransaction(txParams: CeloTx) {
+  public async signTransaction(txParams: CeloTx): Promise<EncodedTransaction> {
     logger.info(
       `${TAG}@signTransaction`,
       `Signing transaction: ${JSON.stringify(txParams)}`

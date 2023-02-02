@@ -1,5 +1,5 @@
 import { normalizeAddressWith0x } from '@celo/base/lib/address';
-import { CeloTx, RLPEncodedTx } from '@celo/connect';
+import { CeloTx, EncodedTransaction, RLPEncodedTx } from '@celo/connect';
 import {
   EIP712TypedData,
   generateTypedDataHash,
@@ -144,7 +144,10 @@ export abstract class CapsuleBaseSigner {
     return recoveryBackup;
   }
 
-  public async signRawTransaction(address: string, tx: CeloTx) {
+  public async signRawTransaction(
+    address: string,
+    tx: CeloTx
+  ): Promise<EncodedTransaction> {
     if (normalizeAddressWith0x(tx.from! as string) !== address) {
       throw new Error(
         `CapsuleSigner(${address}) cannot sign tx with 'from' ${tx.from}`

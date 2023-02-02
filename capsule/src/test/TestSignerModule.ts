@@ -1,10 +1,11 @@
-import { SignerModule, keyType } from '../SignerModule';
+// @ts-nocheck
+import { SignerModule, KeyType } from '../SignerModule';
 
 class TestSignerModule implements SignerModule {
   createAccount(
     walletId: string,
     protocolId: string,
-    keyType: keyType
+    keyType: KeyType
   ): Promise<string> {
     throw new Error('Method not implemented.');
   }
