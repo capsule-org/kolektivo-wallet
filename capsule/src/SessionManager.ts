@@ -1,5 +1,5 @@
 import userManagementClient from './UserManagementClient';
-import { SessionStorage } from './SessionStorage';
+import {SessionStorage} from './SessionStorage';
 
 export default class SessionManager {
   private userId: string;
@@ -23,6 +23,7 @@ export default class SessionManager {
     const signature = await this.sessionStorage.signChallenge(message);
     await userManagementClient.verifySessionChallenge(this.userId, {
       signature,
+      publicKey: await this.sessionStorage.getPublicKey(),
     });
   }
 }
