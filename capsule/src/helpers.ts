@@ -3,6 +3,7 @@ import userManagementClient from './UserManagementClient';
 import {
   USER_NOT_AUTHENTICATED_ERROR,
   USER_NOT_MATCHING_ERROR,
+  USER_NOT_VERIFIED,
 } from '@capsule/client/client';
 
 export function hexToBase64(hex: string) {
@@ -26,9 +27,11 @@ export async function requestAndReauthenticate<T>(
     return await request();
   } catch (e: any) {
     const { data } = e.response;
+    console.log(e.response, data);
     if (
       data === USER_NOT_MATCHING_ERROR ||
-      data === USER_NOT_AUTHENTICATED_ERROR
+      data === USER_NOT_AUTHENTICATED_ERROR ||
+      data === USER_NOT_VERIFIED
     ) {
       await reauthenticate();
       return await request();
@@ -37,6 +40,20 @@ export async function requestAndReauthenticate<T>(
   }
 }
 
-const { createUser, verifyEmail } = userManagementClient;
+const {
+  createUser,
+  verifyEmail,
+  logout,
+  verifyLogin,
+  recoveryVerification,
+  login,
+} = userManagementClient;
 
-export { createUser, verifyEmail };
+export {
+  createUser,
+  verifyEmail,
+  logout,
+  verifyLogin,
+  recoveryVerification,
+  login,
+};
