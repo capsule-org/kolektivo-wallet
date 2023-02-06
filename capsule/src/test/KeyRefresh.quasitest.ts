@@ -7,7 +7,7 @@ import {
   USER_ID_TAG,
 } from '../react-native/ReactNativeCapsuleWallet';
 
-const keyRefreshFlow = async () => {
+export const keyRefreshFlow = async () => {
   const { userId } = await userManagementClient.createUser({
     email: `test-${uuidv4()}@test.usecapsule.com`,
   });

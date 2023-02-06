@@ -6,7 +6,7 @@ import userManagementClient from '../UserManagementClient';
 import { v4 as uuidv4 } from 'uuid';
 import { ReactNativeSessionStorage } from '../react-native/ReactNativeSessionStorage';
 
-const completeFlowWithServerTwoKeys = async () => {
+export const completeFlowWithServerTwoKeys = async () => {
   const { userId } = await userManagementClient.createUser({
     email: `test-${uuidv4()}@test.usecapsule.com`,
   });

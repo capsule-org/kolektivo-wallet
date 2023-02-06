@@ -6,10 +6,12 @@ import {
   ReactNativeCapsuleWallet,
   USER_ID_TAG,
 } from '../react-native/ReactNativeCapsuleWallet';
+import { recoveryVerification } from '../helpers';
 
-const recoverRecoveryShare = async () => {
+export const recoverRecoveryShare = async () => {
+  const email = `test-${uuidv4()}@test.usecapsule.com`;
   const { userId } = await userManagementClient.createUser({
-    email: `test-${uuidv4()}@test.usecapsule.com`,
+    email,
   });
   await userManagementClient.verifyEmail(userId, {
     verificationCode: '123456',
@@ -24,6 +26,8 @@ const recoverRecoveryShare = async () => {
   const address = await wallet.createAccount((share) => {
     recoveryShare = share;
   });
+
+  await recoveryVerification(email, '123456');
 
   const newRecoveryShare = await wallet.getRecoveryShare(address);
 

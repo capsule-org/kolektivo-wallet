@@ -7,7 +7,7 @@ import {
   USER_ID_TAG,
 } from '../react-native/ReactNativeCapsuleWallet';
 
-const keyRecoveryFlow = async () => {
+export const keyRecoveryFlow = async () => {
   const email = `test-${uuidv4()}@test.usecapsule.com`;
   const { userId } = await userManagementClient.createUser({
     email,

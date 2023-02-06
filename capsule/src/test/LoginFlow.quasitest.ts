@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { USER_ID_TAG } from '../react-native/ReactNativeCapsuleWallet';
 import { ReactNativeSessionStorage } from '../react-native/ReactNativeSessionStorage';
 
-const completeFlowWithServer = async () => {
+export const loginFlow = async () => {
   const email = `test-${uuidv4()}@test.usecapsule.com`;
   const { userId } = await userManagementClient.createUser({
     email,
@@ -51,4 +51,4 @@ const completeFlowWithServer = async () => {
   }
 };
 
-void completeFlowWithServer();
+void loginFlow();

@@ -21,7 +21,7 @@ import NavigatorWrapper from 'src/navigator/NavigatorWrapper'
 import { waitUntilSagasFinishLoading } from 'src/redux/sagas'
 import { persistor, store } from 'src/redux/store'
 import Logger from 'src/utils/Logger'
-// import "@usecapsule/react-native-wallet/test/KeyRefresh.test"
+// import "@usecapsule/react-native-wallet/test/quasitests"
 Logger.debug('App/init', 'Current Language: ' + i18n.language)
 
 const ignoreWarnings = [
@@ -53,7 +53,6 @@ BigNumber.config({
 interface Props {
   appStartedMillis: number
 }
-
 
 // Enables LayoutAnimation on Android. It makes transitions between states smoother.
 // https://reactnative.dev/docs/layoutanimation

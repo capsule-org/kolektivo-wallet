@@ -9,7 +9,7 @@ import elliptic from 'elliptic';
 import { ReactNativeSessionStorage } from '../react-native/ReactNativeSessionStorage';
 const ecl = new elliptic.ec('p256');
 
-const completeFlowWithServer = async () => {
+export const completeFlowWithServer = async () => {
   const { userId } = await userManagementClient.createUser({
     email: `test-${uuidv4()}@test.usecapsule.com`,
   });
@@ -35,7 +35,7 @@ const completeFlowWithServer = async () => {
   }
 };
 
-const completeFlowOffline = async () => {
+export const completeFlowOffline = async () => {
   const storage = new ReactNativeSessionStorage('123');
   const message = '1d52c368-d91c-46f4-b449-fa142c8b812d';
   void (await storage.getPublicKey()); // we cannot sign without session key initialized.
