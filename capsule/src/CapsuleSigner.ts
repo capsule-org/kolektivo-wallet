@@ -20,10 +20,21 @@ import { KeyType, SignerModule } from './SignerModule';
 
 const TAG = 'Capsule/CapsuleSigner';
 
+/**
+ * CapsuleBaseSigner is the abstract class for managing Capsule accounts.
+ * The signer is extended for platform-specific implementations for private key storage.
+ * CapsuleBaseSigner handles the specific MPC cryptographic operations and should be interacted
+ * with through a CapsuleBaseWallet and possibly via extension. 
+ */
 export abstract class CapsuleBaseSigner {
   private readonly userId: string;
   private ensureSessionActive: () => Promise<void>;
 
+  /**
+   * Constructs a new CapsuleBaseSigner object
+   * @param userId UserId registered with the Capsule Server
+   * @param ensureSessionActive A function that ensures an active Capsule session
+   */
   constructor(userId: string, ensureSessionActive: () => Promise<void>) {
     this.userId = userId;
     this.ensureSessionActive = ensureSessionActive;
@@ -34,16 +45,24 @@ export abstract class CapsuleBaseSigner {
    * get the instance of the storage for setting and retrieving keyshare secret.
    * @param address
    * @protected
+   * @category Platform-Specific
    */
   protected abstract getPrivateKeyStorage(address: string): PrivateKeyStorage;
 
   /**
    * get the instance of the SignerModule for performing the MPC operations
+   * @category Platform-Specific
    */
   protected abstract getSignerModule(): SignerModule;
 
   // ------------- Public methods -------------
 
+  /**
+   * 
+   * @param onRecoveryKeyshare 
+   * @returns 
+   * @category Public
+   */
   public async generateKeyshare(
     onRecoveryKeyshare: (keyshare: string) => void
   ): Promise<string> {
@@ -77,6 +96,14 @@ export abstract class CapsuleBaseSigner {
     );
   }
 
+  /**
+   * 
+   * @param recoveryKey 
+   * @param address 
+   * @param onRecoveryKeyshare 
+   * @returns 
+   * @category Public
+   */
   public async refreshKeyshare(
     recoveryKey: string,
     address: string,
@@ -118,6 +145,12 @@ export abstract class CapsuleBaseSigner {
     );
   }
 
+  /**
+   * 
+   * @param keyshare 
+   * @returns 
+   * @category Public
+   */
   public async importKeyshare(keyshare: string): Promise<string> {
     // TODO validate keyshare
     const userKeyContainer: KeyContainer = JSON.parse(keyshare);
@@ -125,7 +158,16 @@ export abstract class CapsuleBaseSigner {
     return userKeyContainer.address;
   }
 
-  async getRecoveryKey(address: string): Promise<string> {
+  /**
+   * 
+   * @param address 
+   * @returns 
+   * @category Public
+   */
+  public async getRecoveryKey(
+    address: string,
+    onRecoveryKeyshare: (keyshare: string) => void
+  ): Promise<void> {
     const userKeyContainer = await this.getKeyContainer(address);
     // Get the encrypted keyshares from Capsule server
     const encryptedRecoveryBackup = await requestAndReauthenticate(
@@ -141,9 +183,17 @@ export abstract class CapsuleBaseSigner {
     const recoveryBackup = userKeyContainer.decrypt(
       encryptedRecoveryBackup.data.keyShare.encryptedShare
     );
-    return recoveryBackup;
+    
+    await onRecoveryKeyshare?.(recoveryBackup);
   }
 
+  /**
+   * 
+   * @param address 
+   * @param tx 
+   * @returns 
+   * @category Public
+   */
   public async signRawTransaction(
     address: string,
     tx: CeloTx
@@ -158,6 +208,14 @@ export abstract class CapsuleBaseSigner {
     return encodeTransaction(encodedTx, signature);
   }
 
+  /**
+   * 
+   * @param address 
+   * @param _addToV 
+   * @param encodedTx 
+   * @returns 
+   * @category Public
+   */
   public async signTransaction(
     address: string,
     // addToV (chainId) is ignored here because geth will
@@ -195,6 +253,13 @@ export abstract class CapsuleBaseSigner {
     return extractSignature(base64ToHex(signedTxBase64));
   }
 
+  /**
+   * 
+   * @param address 
+   * @param data 
+   * @returns 
+   * @category Public
+   */
   public async signPersonalMessage(
     address: string,
     data: string
@@ -206,6 +271,13 @@ export abstract class CapsuleBaseSigner {
     return this.signHash(hash.toString('base64'), address);
   }
 
+  /**
+   * 
+   * @param address 
+   * @param typedData 
+   * @returns 
+   * @category Public
+   */
   public async signTypedData(
     address: string,
     typedData: EIP712TypedData
@@ -218,6 +290,12 @@ export abstract class CapsuleBaseSigner {
     return this.signHash(hash.toString('base64'), address);
   }
 
+  /**
+   * 
+   * @param address 
+   * @returns 
+   * @category Public
+   */
   public async getKeyshare(address: string) {
     const key: KeyContainer = await this.getKeyContainer(address);
     return key.keyshare;
@@ -225,6 +303,15 @@ export abstract class CapsuleBaseSigner {
 
   // --------------------------
 
+  /**
+   * 
+   * @param userKeyshare 
+   * @param recoveryKeyshare 
+   * @param walletId 
+   * @param onRecoveryKeyshare 
+   * @returns 
+   * @category Private
+   */
   private async encryptAndUploadKeys(
     userKeyshare: string,
     recoveryKeyshare: string,
@@ -276,10 +363,17 @@ export abstract class CapsuleBaseSigner {
     // fully created accounts on the device
     await this.setKeyContainer(userAddress, userKeyContainer);
 
-    onRecoveryKeyshare?.(serializedRecovery);
+    await onRecoveryKeyshare?.(serializedRecovery);
     return userAddress;
   }
 
+  /**
+   * 
+   * @param address 
+   * @param keyContainer 
+   * @returns 
+   * @category Private
+   */
   private async setKeyContainer(address: string, keyContainer: KeyContainer) {
     const serializedKeyContainer = JSON.stringify(keyContainer);
     return this.getPrivateKeyStorage(address).setPrivateKey(
@@ -287,6 +381,12 @@ export abstract class CapsuleBaseSigner {
     );
   }
 
+  /**
+   * 
+   * @param address 
+   * @returns 
+   * @category Private
+   */
   private async getKeyContainer(address: string): Promise<KeyContainer> {
     try {
       const keyContainer = await this.getPrivateKeyStorage(
@@ -306,6 +406,13 @@ export abstract class CapsuleBaseSigner {
     }
   }
 
+  /**
+   * 
+   * @param userId 
+   * @param address 
+   * @returns 
+   * @category Private
+   */
   private async getWallet(userId: string, address: string): Promise<any> {
     const response = await requestAndReauthenticate(
       () => userManagementClient.getWallets(userId),
@@ -322,6 +429,14 @@ export abstract class CapsuleBaseSigner {
     return undefined;
   }
 
+  /**
+   * 
+   * @param userId 
+   * @param walletId 
+   * @param tx 
+   * @returns 
+   * @category Private
+   */
   private async preSignMessage(
     userId: string,
     walletId: string,
@@ -336,6 +451,14 @@ export abstract class CapsuleBaseSigner {
       logger.debug(TAG, 'CAPSULE ERROR ', err);
     }
   }
+
+  /**
+   * 
+   * @param hash 
+   * @param address 
+   * @returns 
+   * @category Private
+   */
   private async signHash(
     hash: string,
     address: string
