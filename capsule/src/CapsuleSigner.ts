@@ -42,7 +42,7 @@ export abstract class CapsuleBaseSigner {
 
   // ------------- Platform-specific functionalities -------------
   /**
-   * get the instance of the storage for setting and retrieving keyshare secret.
+   * Get the instance of the storage for setting and retrieving keyshare secret.
    * @param address
    * @protected
    * @category Platform-Specific
@@ -50,7 +50,7 @@ export abstract class CapsuleBaseSigner {
   protected abstract getPrivateKeyStorage(address: string): PrivateKeyStorage;
 
   /**
-   * get the instance of the SignerModule for performing the MPC operations
+   * Get the instance of the SignerModule for performing the MPC operations
    * @category Platform-Specific
    */
   protected abstract getSignerModule(): SignerModule;
@@ -164,10 +164,7 @@ export abstract class CapsuleBaseSigner {
    * @returns 
    * @category Public
    */
-  public async getRecoveryKey(
-    address: string,
-    onRecoveryKeyshare: (keyshare: string) => void
-  ): Promise<void> {
+  async getRecoveryKey(address: string): Promise<string> {
     const userKeyContainer = await this.getKeyContainer(address);
     // Get the encrypted keyshares from Capsule server
     const encryptedRecoveryBackup = await requestAndReauthenticate(
@@ -184,7 +181,7 @@ export abstract class CapsuleBaseSigner {
       encryptedRecoveryBackup.data.keyShare.encryptedShare
     );
     
-    await onRecoveryKeyshare?.(recoveryBackup);
+    return recoveryBackup;
   }
 
   /**

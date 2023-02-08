@@ -167,12 +167,12 @@ export abstract class CapsuleBaseWallet {
    * @category Public
    */
   public async refresh(
-    keyshare: string,
+    rawKeyshare: string,
     onRecoveryKeyshare: (keyshare: string) => void
   ) {
     const signer = await this.getSigner();
-    const address = await signer.importKeyshare(keyshare);
-    await signer.refreshKeyshare(keyshare, address, onRecoveryKeyshare);
+    const keyshare = KeyContainer.import(rawKeyshare);
+    await signer.refreshKeyshare(keyshare.keyshare, keyshare.address, onRecoveryKeyshare);
   }
 
   /**
@@ -237,7 +237,6 @@ export abstract class CapsuleBaseWallet {
     logger.info(TAG, 'Share imported!');
 
     await this.refresh(
-      recoveryKeyshare.address,
       rawRecoveryKeyshare,
       onNewRecoveryKeyshare
     );
@@ -248,20 +247,15 @@ export abstract class CapsuleBaseWallet {
 
   /**
    * Download and decrypt the recovery share from Capsule Server. This is
-   * useful if the user loses access to their recovery share.
-   * @param address 
-   * @param onRecoveryKeyshare The callback that will be passed the recovery
-   * share. This can be used to securely send the recovery keyshare to the
-   * users email or cloud backup.
-   * @returns 
+   * useful if the user loses access to their recovery share. Note that this
+   * will likely require additional authentication in the future.
+   * @param address Address of the account.
+   * @returns The recovery keyshare of the account.
    * @category Public
    */
-  public async getRecoveryShare(
-    address: string,
-    onRecoveryKeyshare: (keyshare: string) => void
-  ): Promise<void> {
+  public async getRecoveryShare(address: string): Promise<string> {
     const signer = await this.getSigner();
-    return await signer.getRecoveryKey(address, onRecoveryKeyshare);
+    return signer.getRecoveryKey(address);
   }
 
   /**
@@ -305,22 +299,17 @@ export abstract class CapsuleBaseWallet {
   /**
    * Export keyshare from the wallet
    * @param address The address of the account to get the keyshare of.
-   * @param onDeviceKeyshare The callback that will be passed the device key
-   * share. This can be used to securely send the device keyshare to the
-   * users clipboard or QR code.
+   * @returns The keyshare of the account.
    * @category Public
    */
-  public async getKeyshare(
-    address: string,
-    onDeviceKeyshare: (keyshare: string) => void
-  ): Promise<void> {
+  async getKeyshare(address: string): Promise<string> {
     const signer = await this.getSigner();
     const keyshare = await signer.getKeyshare(address);
     if (!keyshare) {
       logger.error(`${TAG}@addAccount`, `Missing private key`);
       throw new Error(ErrorMessages.CAPSULE_UNEXPECTED_ADDRESS);
     }
-    await onDeviceKeyshare(keyshare);
+    return keyshare;
   }
 
   // --------------------------
