@@ -53,6 +53,9 @@ export async function retrieveStoredItem(
 
 const TAG = '@CAPSULE/wallet-';
 
+/**
+ * React Native implementation of PrivateKeyStorage using Keychain
+ */
 export class ReactNativePrivateKeyStorage extends PrivateKeyStorage {
   protected privateKeyGetOptions(): Keychain.Options {
     return {};
@@ -62,14 +65,22 @@ export class ReactNativePrivateKeyStorage extends PrivateKeyStorage {
     return {};
   }
 
-  async getPrivateKey(): Promise<string | null> {
+  /**
+   * Retrieves the private key from KeyChain.
+   * @returns The private key.
+   */
+  public async getPrivateKey(): Promise<string | null> {
     return await retrieveStoredItem(
       TAG + this.walletId,
       this.privateKeyGetOptions()
     );
   }
 
-  async setPrivateKey(key: string): Promise<void> {
+  /**
+   * Stores the private key in KeyChain.
+   * @param key The private key.
+   */
+  public async setPrivateKey(key: string): Promise<void> {
     return await storeItem(
       TAG + this.walletId,
       key,

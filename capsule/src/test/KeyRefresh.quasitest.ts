@@ -30,7 +30,7 @@ export const keyRefreshFlow = async () => {
   let newRecoveryShare = '';
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
-  await wallet.refresh(address, recoveryShare, (share) => {
+  await wallet.refresh(recoveryShare, (share) => {
     newRecoveryShare = share;
   });
 

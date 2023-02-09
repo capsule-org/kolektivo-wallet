@@ -189,7 +189,7 @@ export abstract class CapsuleBaseWallet {
    * device with the same account. This should not be used if the user suspects
    * the device has been lost or compromised (use `refresh` instead for lost or
    * compromised keys).
-   * @param keyshare The exported keyshare
+   * @param keyshare The exported keyshare.
    * @category Public
    */
   public async importAccount(keyshare: string): Promise<string> {
@@ -247,8 +247,9 @@ export abstract class CapsuleBaseWallet {
 
   /**
    * Download and decrypt the recovery share from Capsule Server. This is
-   * useful if the user loses access to their recovery share. Note that this
-   * will likely require additional authentication in the future.
+   * useful if the user loses access to their recovery share. 
+   * @remarks Note that this will likely require additional authentication
+   * in the future.
    * @param address Address of the account.
    * @returns The recovery keyshare of the account.
    * @category Public

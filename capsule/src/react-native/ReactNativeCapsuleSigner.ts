@@ -6,6 +6,9 @@ import { SignerModule } from '../SignerModule';
 
 const { CapsuleSignerModule } = NativeModules;
 
+/**
+ * React Native implementation of Capsule Signer
+ */
 export class ReactNativeCapsuleSigner extends CapsuleBaseSigner {
   protected getSignerModule(): SignerModule {
     return CapsuleSignerModule;

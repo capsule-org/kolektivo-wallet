@@ -43,7 +43,7 @@ export abstract class CapsuleBaseSigner {
   // ------------- Platform-specific functionalities -------------
   /**
    * Get the instance of the storage for setting and retrieving keyshare secret.
-   * @param address
+   * @param address Address of the account.
    * @protected
    * @category Platform-Specific
    */
@@ -58,9 +58,14 @@ export abstract class CapsuleBaseSigner {
   // ------------- Public methods -------------
 
   /**
-   * 
-   * @param onRecoveryKeyshare 
-   * @returns 
+   * Creates a new 2/3 Capsule account. Uploads encrypted backups to Capsule
+   * server. This will result in the new keyshare persisted
+   * on the device. The recovery keyshare is provided through the callback,
+   * `onRecoveryKeyshare`. 
+   * @param onRecoveryKeyshare The callback that will be passed the recovery 
+   * share. This can be used to securely send the recovery keyshare to the
+   * users email or cloud backup.
+   * @returns Account address.
    * @category Public
    */
   public async generateKeyshare(
@@ -97,11 +102,16 @@ export abstract class CapsuleBaseSigner {
   }
 
   /**
-   * 
-   * @param recoveryKey 
-   * @param address 
-   * @param onRecoveryKeyshare 
-   * @returns 
+   * Performs the key refresh process with Capsule server. This generates new
+   * keys which make the previous keys for this account unusable. Similar to 
+   * `createAccount`, the new keys are stored on device and the recovery 
+   * keyshare is provided through the callback. 
+   * @param recoveryKey The recovery key sent to the user.
+   * @category Platform-Specific The address of the account to refresh.
+   * @param onRecoveryKeyshare The callback that will be passed the recovery 
+   * share. This can be used to securely send the recovery keyshare to the
+   * users email or cloud backup.
+   * @returns The address of the account.
    * @category Public
    */
   public async refreshKeyshare(
@@ -146,9 +156,13 @@ export abstract class CapsuleBaseSigner {
   }
 
   /**
-   * 
-   * @param keyshare 
-   * @returns 
+   * Import a previously created account to the wallet. The keyshare can be 
+   * exported from `getKeyshare`. This can be useful for signing in on a new 
+   * device with the same account. This should not be used if the user suspects
+   * the device has been lost or compromised (use `refresh` instead for lost or
+   * compromised keys).
+   * @param keyshare The exported keyshare.
+   * @returns The account address.
    * @category Public
    */
   public async importKeyshare(keyshare: string): Promise<string> {
@@ -159,9 +173,12 @@ export abstract class CapsuleBaseSigner {
   }
 
   /**
-   * 
-   * @param address 
-   * @returns 
+   * Download and decrypt the recovery share from Capsule Server. This is
+   * useful if the user loses access to their recovery share. 
+   * @remarks Note that this will likely require additional authentication
+   * in the future.
+   * @category Platform-Specific Address of the account.
+   * @returns The recovery keyshare of the account.
    * @category Public
    */
   async getRecoveryKey(address: string): Promise<string> {
@@ -185,10 +202,10 @@ export abstract class CapsuleBaseSigner {
   }
 
   /**
-   * 
-   * @param address 
-   * @param tx 
-   * @returns 
+   * Signs and submits a raw transaction using the provided account.
+   * @category Platform-Specific Address of the account.
+   * @param tx Raw transaction to sign.
+   * @returns The RLP encoded transaction with the signature.
    * @category Public
    */
   public async signRawTransaction(
@@ -206,11 +223,11 @@ export abstract class CapsuleBaseSigner {
   }
 
   /**
-   * 
-   * @param address 
-   * @param _addToV 
-   * @param encodedTx 
-   * @returns 
+   * Signs and submits an RLP transaction using the provided account.
+   * @category Platform-Specific Address of the account.
+   * @param _addToV The amount to add to the "v" value.
+   * @param encodedTx The RLP encoded transaction to sign.
+   * @returns The signature.
    * @category Public
    */
   public async signTransaction(
@@ -251,10 +268,10 @@ export abstract class CapsuleBaseSigner {
   }
 
   /**
-   * 
-   * @param address 
-   * @param data 
-   * @returns 
+   * Signs a non-transaction message string.
+   * @param address Address of the account.
+   * @param data The message to sign.
+   * @returns The signed message.
    * @category Public
    */
   public async signPersonalMessage(
@@ -269,10 +286,10 @@ export abstract class CapsuleBaseSigner {
   }
 
   /**
-   * 
-   * @param address 
-   * @param typedData 
-   * @returns 
+   * Signs an EIP-712 typed data message.
+   * @param address Address of the account.
+   * @param typedData Typed data message to sign. 
+   * @returns The signed message.
    * @category Public
    */
   public async signTypedData(
@@ -288,9 +305,10 @@ export abstract class CapsuleBaseSigner {
   }
 
   /**
-   * 
-   * @param address 
-   * @returns 
+   * Retrieve a keyshare that has been loaded into this signer. Useful for
+   * exporting the keyshare onto a new device.
+   * @param address Address of the account.
+   * @returns The serialized keyshare.
    * @category Public
    */
   public async getKeyshare(address: string) {
@@ -301,12 +319,15 @@ export abstract class CapsuleBaseSigner {
   // --------------------------
 
   /**
-   * 
-   * @param userKeyshare 
-   * @param recoveryKeyshare 
-   * @param walletId 
-   * @param onRecoveryKeyshare 
-   * @returns 
+   * Encrypts the user and recovery share using the asymmetric encryption keys
+   * and uploads it to the Capsule server. Stores the user keyshare locally.
+   * @param userKeyshare The user keyshare.
+   * @param recoveryKeyshare The recovery keyshare.
+   * @param walletId The walletId registered with Capsule.
+   * @param onRecoveryKeyshare The callback that will be passed the recovery 
+   * share. This can be used to securely send the recovery keyshare to the
+   * users email or cloud backup.
+   * @returns The account address.
    * @category Private
    */
   private async encryptAndUploadKeys(
@@ -365,13 +386,15 @@ export abstract class CapsuleBaseSigner {
   }
 
   /**
-   * 
-   * @param address 
-   * @param keyContainer 
-   * @returns 
+   * Store the keyContainer locally using the private key storage.
+   * @param address Address of the account.
+   * @param keyContainer The keyContainer to store.
    * @category Private
    */
-  private async setKeyContainer(address: string, keyContainer: KeyContainer) {
+  private async setKeyContainer(
+    address: string,
+    keyContainer: KeyContainer
+  ): Promise<void> {
     const serializedKeyContainer = JSON.stringify(keyContainer);
     return this.getPrivateKeyStorage(address).setPrivateKey(
       serializedKeyContainer
@@ -379,9 +402,9 @@ export abstract class CapsuleBaseSigner {
   }
 
   /**
-   * 
-   * @param address 
-   * @returns 
+   * Retrieve the key container from the private key storage.
+   * @param address Address of the account.
+   * @returns The keyContainer.
    * @category Private
    */
   private async getKeyContainer(address: string): Promise<KeyContainer> {
@@ -404,10 +427,10 @@ export abstract class CapsuleBaseSigner {
   }
 
   /**
-   * 
-   * @param userId 
-   * @param address 
-   * @returns 
+   * Get the walletId from the Capsule server using the account address.
+   * @param userId UserId registered with the Capsule Server
+   * @param address Address of the account.
+   * @returns The UserId.
    * @category Private
    */
   private async getWallet(userId: string, address: string): Promise<any> {
@@ -427,11 +450,12 @@ export abstract class CapsuleBaseSigner {
   }
 
   /**
-   * 
-   * @param userId 
-   * @param walletId 
-   * @param tx 
-   * @returns 
+   * Prepares Capsule Server to sign a message and generates a protocolId for
+   * the signing step.
+   * @param userId UserId registered with the Capsule Server
+   * @param walletId The walletId registered with Capsule.
+   * @param tx The transaction to be signed.
+   * @returns Result with the protocolId property.
    * @category Private
    */
   private async preSignMessage(
@@ -450,10 +474,10 @@ export abstract class CapsuleBaseSigner {
   }
 
   /**
-   * 
-   * @param hash 
-   * @param address 
-   * @returns 
+   * Sign a hash using Capsule.
+   * @param hash The hash to sign.
+   * @param address Address of the account.
+   * @returns The signed hash.
    * @category Private
    */
   private async signHash(

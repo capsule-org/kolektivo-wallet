@@ -10,6 +10,11 @@ import { SessionStorage, Signature } from '../SessionStorage';
 const PEM_HEADER = '-----BEGIN PUBLIC KEY-----';
 const PEM_FOOTER = '-----END PUBLIC KEY-----';
 
+/**
+ * React Native implementation of SessionStorage
+ * Uses the device key to manage session storage and recreate sessions that
+ * have expired.
+ */
 export class ReactNativeSessionStorage extends SessionStorage {
   protected signOptions(): BiometryParams {
     return {
@@ -30,7 +35,11 @@ export class ReactNativeSessionStorage extends SessionStorage {
     return 'challenge-' + this.userId;
   }
 
-  async getPublicKey(): Promise<string> {
+  /**
+   * Uses the device's enclave to generate or retrieve a session key.
+   * @returns The public key of the challenge signer.
+   */
+  public async getPublicKey(): Promise<string> {
     const pemPublicKey = await DeviceCrypto.getOrCreateAsymmetricKey(
       this.storageIdentifier(),
       this.asymmetricKeyOptions()
@@ -46,7 +55,12 @@ export class ReactNativeSessionStorage extends SessionStorage {
     return publicKeyHex;
   }
 
-  async signChallenge(message: string): Promise<Signature> {
+  /**
+   * Signs a challenge to refresh the session.
+   * @param message The challenge to sign.
+   * @returns The signed challenge.
+   */
+  public async signChallenge(message: string): Promise<Signature> {
     const signatureDERBase64 = await DeviceCrypto.sign(
       this.storageIdentifier(),
       message,

@@ -10,6 +10,9 @@ import { ReactNativeSessionStorage } from './ReactNativeSessionStorage';
 
 export const USER_ID_TAG = '@CAPSULE/USER_ID';
 
+/**
+ * React Native implementation of CapsuleWallet
+ */
 export class ReactNativeCapsuleWallet extends CapsuleBaseWallet {
   getCapsuleSigner(
     userId: string,
