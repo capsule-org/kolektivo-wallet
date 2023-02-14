@@ -85,7 +85,7 @@ export abstract class CapsuleBaseWallet {
   }
 
   /**
-   * @deprecated
+   * @hidden
    * @category Deprecated
    */
   public init() {
@@ -93,7 +93,7 @@ export abstract class CapsuleBaseWallet {
   }
 
   /**
-   * @deprecated
+   * @hidden
    * @param privateKey
    * @category Deprecated
    */
@@ -105,7 +105,7 @@ export abstract class CapsuleBaseWallet {
   }
 
   /**
-   * @deprecated
+   * @hidden
    * @param _account
    * @param _passphrase
    * @param _duration
@@ -122,7 +122,7 @@ export abstract class CapsuleBaseWallet {
   }
 
   /**
-   * @deprecated
+   * @hidden
    * @category Deprecated
    */
   public isAccountUnlocked(_address: string) {

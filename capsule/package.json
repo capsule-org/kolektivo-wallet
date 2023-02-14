@@ -37,9 +37,9 @@
     "example": "yarn --cwd example",
     "bootstrap": "yarn example && yarn install && yarn example pods",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build",
-    "docs": "npx typedoc --plugin typedoc-plugin-markdown --includeVersion --out docs src/CapsuleWallet.ts src/CapsuleSigner.ts",
-    "docs:react": "npx typedoc --plugin typedoc-plugin-markdown --includeVersion --out docs/react-native src/react-native/*",
-    "docs:helpers": "npx typedoc --plugin typedoc-plugin-markdown --includeVersion --out docs/helpers src/helpers.ts"
+    "docs": "npx typedoc --plugin typedoc-plugin-markdown --excludePrivate --includeVersion --out docs src/CapsuleWallet.ts src/CapsuleSigner.ts",
+    "docs:react": "npx typedoc --plugin typedoc-plugin-markdown --excludePrivate --includeVersion --out docs/react-native src/react-native/*",
+    "docs:helpers": "npx typedoc --plugin typedoc-plugin-markdown --excludePrivate --includeVersion --out docs/helpers src/helpers.ts"
   },
   "keywords": [
     "react-native",
