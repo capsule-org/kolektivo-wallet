@@ -24,7 +24,7 @@ const TAG = 'Capsule/CapsuleSigner';
  * CapsuleBaseSigner is the abstract class for managing Capsule accounts.
  * The signer is extended for platform-specific implementations for private key storage.
  * CapsuleBaseSigner handles the specific MPC cryptographic operations and should be interacted
- * with through a CapsuleBaseWallet and possibly via extension. 
+ * with through a CapsuleBaseWallet and possibly via extension.
  */
 export abstract class CapsuleBaseSigner {
   private readonly userId: string;
@@ -61,8 +61,8 @@ export abstract class CapsuleBaseSigner {
    * Creates a new 2/3 Capsule account. Uploads encrypted backups to Capsule
    * server. This will result in the new keyshare persisted
    * on the device. The recovery keyshare is provided through the callback,
-   * `onRecoveryKeyshare`. 
-   * @param onRecoveryKeyshare The callback that will be passed the recovery 
+   * `onRecoveryKeyshare`.
+   * @param onRecoveryKeyshare The callback that will be passed the recovery
    * share. This can be used to securely send the recovery keyshare to the
    * users email or cloud backup.
    * @returns Account address.
@@ -103,12 +103,12 @@ export abstract class CapsuleBaseSigner {
 
   /**
    * Performs the key refresh process with Capsule server. This generates new
-   * keys which make the previous keys for this account unusable. Similar to 
-   * `createAccount`, the new keys are stored on device and the recovery 
-   * keyshare is provided through the callback. 
+   * keys which make the previous keys for this account unusable. Similar to
+   * `createAccount`, the new keys are stored on device and the recovery
+   * keyshare is provided through the callback.
    * @param recoveryKey The recovery key sent to the user.
    * @category Platform-Specific The address of the account to refresh.
-   * @param onRecoveryKeyshare The callback that will be passed the recovery 
+   * @param onRecoveryKeyshare The callback that will be passed the recovery
    * share. This can be used to securely send the recovery keyshare to the
    * users email or cloud backup.
    * @returns The address of the account.
@@ -116,11 +116,10 @@ export abstract class CapsuleBaseSigner {
    */
   public async refreshKeyshare(
     recoveryKey: string,
-    address: string,
     onRecoveryKeyshare: (keyshare: string) => void
   ): Promise<string> {
     const recoveryKeyContainer = JSON.parse(recoveryKey);
-    const userKeyContainer = await this.getKeyContainer(address);
+    const userKeyContainer = await this.getKeyContainer(recoveryKeyContainer.address);
 
     const refreshResult = await requestAndReauthenticate(
       () =>
@@ -156,8 +155,8 @@ export abstract class CapsuleBaseSigner {
   }
 
   /**
-   * Import a previously created account to the wallet. The keyshare can be 
-   * exported from `getKeyshare`. This can be useful for signing in on a new 
+   * Import a previously created account to the wallet. The keyshare can be
+   * exported from `getKeyshare`. This can be useful for signing in on a new
    * device with the same account. This should not be used if the user suspects
    * the device has been lost or compromised (use `refresh` instead for lost or
    * compromised keys).
@@ -174,7 +173,7 @@ export abstract class CapsuleBaseSigner {
 
   /**
    * Download and decrypt the recovery share from Capsule Server. This is
-   * useful if the user loses access to their recovery share. 
+   * useful if the user loses access to their recovery share.
    * @remarks Note that this will likely require additional authentication
    * in the future.
    * @category Platform-Specific Address of the account.
@@ -197,7 +196,7 @@ export abstract class CapsuleBaseSigner {
     const recoveryBackup = userKeyContainer.decrypt(
       encryptedRecoveryBackup.data.keyShare.encryptedShare
     );
-    
+
     return recoveryBackup;
   }
 
@@ -288,7 +287,7 @@ export abstract class CapsuleBaseSigner {
   /**
    * Signs an EIP-712 typed data message.
    * @param address Address of the account.
-   * @param typedData Typed data message to sign. 
+   * @param typedData Typed data message to sign.
    * @returns The signed message.
    * @category Public
    */
@@ -324,7 +323,7 @@ export abstract class CapsuleBaseSigner {
    * @param userKeyshare The user keyshare.
    * @param recoveryKeyshare The recovery keyshare.
    * @param walletId The walletId registered with Capsule.
-   * @param onRecoveryKeyshare The callback that will be passed the recovery 
+   * @param onRecoveryKeyshare The callback that will be passed the recovery
    * share. This can be used to securely send the recovery keyshare to the
    * users email or cloud backup.
    * @returns The account address.

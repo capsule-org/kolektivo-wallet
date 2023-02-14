@@ -15,14 +15,14 @@ import { requestAndReauthenticate } from './helpers';
 const TAG = 'geth/CapsuleWallet';
 
 /**
- * CapsuleBaseWallet is the abstract class for managing Capsule Wallets. The 
+ * CapsuleBaseWallet is the abstract class for managing Capsule Wallets. The
  * wallet is extended for platform-specific implementations for account and
  * sessions storage. CapsuleBaseWallet manages an instance of CapsuleBaseSigner
- * for performing cryptographic operations. One instance of CapsuleBaseWallet 
+ * for performing cryptographic operations. One instance of CapsuleBaseWallet
  * may be used to manage multiple Capsule accounts.
  */
 export abstract class CapsuleBaseWallet {
-  
+
   /**
    * Singleton instance for managing keys and performing crypto operations.
    */
@@ -94,7 +94,7 @@ export abstract class CapsuleBaseWallet {
 
   /**
    * @deprecated
-   * @param privateKey 
+   * @param privateKey
    * @category Deprecated
    */
   public addAccount(privateKey: string) {
@@ -106,9 +106,9 @@ export abstract class CapsuleBaseWallet {
 
   /**
    * @deprecated
-   * @param _account 
-   * @param _passphrase 
-   * @param _duration 
+   * @param _account
+   * @param _passphrase
+   * @param _duration
    * @category Deprecated
    */
   public async unlockAccount(
@@ -136,8 +136,8 @@ export abstract class CapsuleBaseWallet {
    * Create a new Capsule account. Once initialized with a keyhare, the account
    * is imported to the wallet. This will result in the new keyshare persisted
    * on the device. The recovery keyshare is provided through the callback,
-   * `onRecoveryKeyshare`. 
-   * @param onRecoveryKeyshare The callback that will be passed the recovery 
+   * `onRecoveryKeyshare`.
+   * @param onRecoveryKeyshare The callback that will be passed the recovery
    * share. This can be used to securely send the recovery keyshare to the
    * users email or cloud backup.
    * @category Public
@@ -156,11 +156,10 @@ export abstract class CapsuleBaseWallet {
 
   /**
    * Performs the key refresh process with Capsule server. This generates new
-   * keys which make the previous keys for this account unusable. Similar to 
-   * `createAccount`, the new keys are stored on device and the recovery 
-   * keyshare is provided through the callback. 
-   * @param keyshare One of user-custodied keyshares (either the device keyshare
-   * or the recovery keyshare)
+   * keys which make the previous keys for this account unusable. Similar to
+   * `createAccount`, the new keys are stored on device and the recovery
+   * keyshare is provided through the callback.
+   * @param keyshare Recovery keyshare.
    * @param onRecoveryKeyshare The callback that will be passed the recovery
    * share. This can be used to securely send the recovery keyshare to the
    * users email or cloud backup.
@@ -171,8 +170,7 @@ export abstract class CapsuleBaseWallet {
     onRecoveryKeyshare: (keyshare: string) => void
   ) {
     const signer = await this.getSigner();
-    const keyshare = KeyContainer.import(rawKeyshare);
-    await signer.refreshKeyshare(keyshare.keyshare, keyshare.address, onRecoveryKeyshare);
+    await signer.refreshKeyshare(rawKeyshare, onRecoveryKeyshare);
   }
 
   /**
@@ -184,8 +182,8 @@ export abstract class CapsuleBaseWallet {
   }
 
   /**
-   * Import a previously created account to the wallet. The keyshare can be 
-   * exported from `getKeyshare`. This can be useful for signing in on a new 
+   * Import a previously created account to the wallet. The keyshare can be
+   * exported from `getKeyshare`. This can be useful for signing in on a new
    * device with the same account. This should not be used if the user suspects
    * the device has been lost or compromised (use `refresh` instead for lost or
    * compromised keys).
@@ -247,7 +245,7 @@ export abstract class CapsuleBaseWallet {
 
   /**
    * Download and decrypt the recovery share from Capsule Server. This is
-   * useful if the user loses access to their recovery share. 
+   * useful if the user loses access to their recovery share.
    * @remarks Note that this will likely require additional authentication
    * in the future.
    * @param address Address of the account.
