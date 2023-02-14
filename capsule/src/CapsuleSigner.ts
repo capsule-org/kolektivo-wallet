@@ -176,7 +176,7 @@ export abstract class CapsuleBaseSigner {
    * useful if the user loses access to their recovery share.
    * @remarks Note that this will likely require additional authentication
    * in the future.
-   * @category Platform-Specific Address of the account.
+   * @param address Address of the account.
    * @returns The recovery keyshare of the account.
    * @category Public
    */
@@ -202,7 +202,7 @@ export abstract class CapsuleBaseSigner {
 
   /**
    * Signs and submits a raw transaction using the provided account.
-   * @category Platform-Specific Address of the account.
+   * @param address Address of the account.
    * @param tx Raw transaction to sign.
    * @returns The RLP encoded transaction with the signature.
    * @category Public
@@ -223,7 +223,7 @@ export abstract class CapsuleBaseSigner {
 
   /**
    * Signs and submits an RLP transaction using the provided account.
-   * @category Platform-Specific Address of the account.
+   * @param address Address of the account.
    * @param _addToV The amount to add to the "v" value.
    * @param encodedTx The RLP encoded transaction to sign.
    * @returns The signature.
