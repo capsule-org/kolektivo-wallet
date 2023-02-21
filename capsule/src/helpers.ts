@@ -5,6 +5,7 @@ import {
   USER_NOT_MATCHING_ERROR,
   USER_NOT_VERIFIED,
 } from '@capsule/client/client';
+import { CapsuleBaseWallet } from "./CapsuleWallet";
 
 /**
  * Used to convert hex to base64 string.
@@ -47,6 +48,19 @@ export async function requestAndReauthenticate<T>(
     }
     throw e;
   }
+}
+
+function uploadKeyshare(wallet: CapsuleBaseWallet, address: string) {
+  return "code"
+}
+
+function retrieveKeyshare(code: string) {
+  return "keyshare"
+}
+
+const TransitionHelper = {
+  uploadKeyshare,
+  retrieveKeyshare
 }
 
 const {
