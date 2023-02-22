@@ -6,7 +6,7 @@ import {
   ReactNativeCapsuleWallet,
   USER_ID_TAG,
 } from '../react-native/ReactNativeCapsuleWallet';
-import { TransitionHelper} from '../helpers';
+import { retrieveKeyshare, uploadKeyshare } from '../TransmissionUtils';
 
 export const transmissionFlow = async () => {
   const email = `test-${uuidv4()}@test.usecapsule.com`;
@@ -24,9 +24,10 @@ export const transmissionFlow = async () => {
 
   const address = await wallet.createAccount((_) => {});
 
-  const secret = await TransitionHelper.uploadKeyshare(wallet, address)
-  console.log("XXXX", secret)
-  const transmittedShare = await TransitionHelper.retrieveKeyshare(secret);
+  const secret = await uploadKeyshare(wallet, address);
+
+  // imagine transmitting the share secret via QR code
+  const transmittedShare = await retrieveKeyshare(secret);
 
   if ((await wallet.getKeyshare(address)) === transmittedShare) {
     console.log('transmissionFlow PASSED');

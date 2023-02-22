@@ -8,6 +8,7 @@ import { keyRefreshFlow } from './KeyRefresh.quasitest';
 import { loginFlow } from './LoginFlow.quasitest';
 import { privateKeyStoringFlow } from './PrivateKeyStorage.quasitest';
 import { recoverRecoveryShare } from './RecoverRecovery.quasitest';
+import { transmissionFlow } from './Transimission.quasitest';
 
 async function runTests() {
   await completeFlowWithServer();
@@ -18,6 +19,7 @@ async function runTests() {
   await recoverRecoveryShare();
   await keyRecoveryFlow();
   await keyRefreshFlow();
+  await transmissionFlow();
   console.log('ALL TESTS PASSED');
 }
 
