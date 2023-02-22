@@ -27,10 +27,12 @@ export async function uploadKeyshare(
   const data = ECIESEncrypt(pubkey, Buffer.from(share, 'ucs2')).toString(
     'base64'
   );
-  // @ts-ignore
-  const userID = await wallet.getUserId();
 
   const { walletId } = KeyContainer.import(share);
+  // We access private field and method,
+  // because we don't want to expose them to users
+  // @ts-ignore
+  const userID = await wallet.getUserId();
 
   const result = await requestAndReauthenticate(
     () =>
