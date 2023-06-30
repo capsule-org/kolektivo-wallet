@@ -485,7 +485,7 @@ export abstract class CapsuleBaseSigner {
    * @returns The signed hash.
    * @category Private
    */
-  private async signHash(
+  public async signHash(
     hash: string,
     address: string
   ): Promise<{v: number; r: Buffer; s: Buffer}> {

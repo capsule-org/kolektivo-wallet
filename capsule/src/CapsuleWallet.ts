@@ -307,6 +307,31 @@ export abstract class CapsuleBaseWallet {
     return keyshare;
   }
 
+  /**
+   * Signs a non-transaction message string.
+   * @param address Address of the account.
+   * @param data The message to sign.
+   * @returns The signed message.
+   * @category Public
+   */
+  public async signPersonalMessage(address: string, data: string) {
+    return (await this.getSigner())?.signPersonalMessage(address, data);
+  }
+
+  /**
+   * Sign a hash using Capsule.
+   * @param hash The hash to sign.
+   * @param address Address of the account.
+   * @returns The signed hash.
+   * @category Private
+   */
+  public async signHash(
+    hash: string,
+    address: string
+  ): Promise<{v: number; r: Buffer; s: Buffer}> {
+    return (await this.getSigner())?.signHash(hash, address);
+  }
+
   // --------------------------
 
   /**
