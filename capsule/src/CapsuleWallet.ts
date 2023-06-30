@@ -326,8 +326,8 @@ export abstract class CapsuleBaseWallet {
    * @category Private
    */
   public async signHash(
-    hash: string,
-    address: string
+    address: string,
+    hash: string
   ): Promise<{v: number; r: Buffer; s: Buffer}> {
     return (await this.getSigner())?.signHash(hash, address);
   }
