@@ -1,4 +1,4 @@
-import { CapsuleBaseSigner } from '../CapsuleSigner';
+import { CapsuleBaseSigner, CapsuleBaseSignerParams } from '../CapsuleSigner';
 import { SignersStorage } from '../SignersStorage';
 import { SessionStorage } from '../SessionStorage';
 // @ts-ignore
@@ -16,9 +16,10 @@ export const USER_ID_TAG = '@CAPSULE/USER_ID';
 export class ReactNativeCapsuleWallet extends CapsuleBaseWallet {
   getCapsuleSigner(
     userId: string,
-    ensureSessionActive: () => Promise<void>
+    ensureSessionActive: () => Promise<void>,
+    params: CapsuleBaseSignerParams = {},
   ): CapsuleBaseSigner {
-    return new ReactNativeCapsuleSigner(userId, ensureSessionActive);
+    return new ReactNativeCapsuleSigner(userId, ensureSessionActive, params);
   }
 
   getSignersStorage(): SignersStorage {

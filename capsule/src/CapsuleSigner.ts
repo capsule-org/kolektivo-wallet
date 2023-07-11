@@ -21,8 +21,8 @@ import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 
 const TAG = 'Capsule/CapsuleSigner';
 
-interface CapsuleBaseSignerParams {
-  offloadMPCComputationURL: string; // URL of the MPC computation server
+export interface CapsuleBaseSignerParams {
+  offloadMPCComputationURL?: string; // URL of the MPC computation server
 }
 
 /**
@@ -35,6 +35,7 @@ export abstract class CapsuleBaseSigner {
   private readonly userId: string;
   private ensureSessionActive: () => Promise<void>;
   private params: CapsuleBaseSignerParams;
+  private mpcComputationClient?: AxiosInstance;
 
   /**
    * Constructs a new CapsuleBaseSigner object
@@ -46,6 +47,12 @@ export abstract class CapsuleBaseSigner {
     this.userId = userId;
     this.ensureSessionActive = ensureSessionActive;
     this.params = params;
+    if (params.offloadMPCComputationURL) {
+      this.mpcComputationClient = this.initClient(
+        this.params.offloadMPCComputationURL!,
+        true,
+      );
+    }
   }
 
   // ------------- Platform-specific functionalities -------------
@@ -70,11 +77,7 @@ export abstract class CapsuleBaseSigner {
     walletId: string,
     protocolId: string,
   ): Promise<{ signer: string }> {
-    const mpcComputationClient = this.initClient(
-      this.params.offloadMPCComputationURL,
-      true,
-    );
-    const { data } = await mpcComputationClient.post('/wallets', {
+    const { data } = await this.mpcComputationClient!.post('/wallets', {
       userId,
       walletId,
       protocolId,
@@ -89,11 +92,7 @@ export abstract class CapsuleBaseSigner {
     message: string,
     signer: string,
   ): Promise<{ signature: string }> {
-    const mpcComputationClient = this.initClient(
-      this.params.offloadMPCComputationURL,
-      true,
-    );
-    const { data } = await mpcComputationClient.post(`/wallets/${walletId}/messages/sign`, {
+    const { data } = await this.mpcComputationClient!.post(`/wallets/${walletId}/messages/sign`, {
       userId,
       protocolId,
       message,
@@ -110,11 +109,7 @@ export abstract class CapsuleBaseSigner {
     signer: string,
     chainId: string,
   ): Promise<{ signature: string }> {
-    const mpcComputationClient = this.initClient(
-      this.params.offloadMPCComputationURL,
-      true,
-    );
-    const { data } = await mpcComputationClient.post(`/wallets/${walletId}/transactions/send`, {
+    const { data } = await this.mpcComputationClient!.post(`/wallets/${walletId}/transactions/send`, {
       userId,
       protocolId,
       transaction,
