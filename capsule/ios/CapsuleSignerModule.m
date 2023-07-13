@@ -11,7 +11,7 @@
 
 static NSString *configBase = @"{\"ServerUrl\": \"%@\", \"WalletId\": \"%@\", \"Id\":\"%@\", \"Ids\":%@, \"Threshold\":1}";
 
-static NSString *ids = @"[\"USER\",\"CAPSULE\",\"RECOVERY\"]";
+static NSString *ids = @"[\"USER\",\"CAPSULE\"]";
 
 @implementation CapsuleSignerModule {
   NSString *_serverUrl;

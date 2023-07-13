@@ -307,11 +307,12 @@ export function* assignAccountFromPrivateKey(privateKey: string, mnemonic: strin
 // TODO
 // That should be replace with a real flow to input the email and verify
 async function createFakeAccount() {
+  const email = `test-${uuidv4()}@test.usecapsule.com`
   const { userId } = await createUser({
-    email: `test-${uuidv4()}@test.usecapsule.com`,
+    email,
   })
   Logger.debug('userId', userId)
-  await AsyncStorage.setItem(USER_ID_TAG, userId)
+  await AsyncStorage.setItem(USER_ID_TAG, userId + '|' + email)
 
   // That is a workaround to simulate verification of test users
   await verifyEmail(userId, { verificationCode: '123456' })
