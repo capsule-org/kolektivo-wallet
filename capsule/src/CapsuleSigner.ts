@@ -17,8 +17,64 @@ import {base64ToHex, hexToBase64, requestAndReauthenticate} from './helpers';
 import {PrivateKeyStorage} from './PrivateKeyStorage';
 import userManagementClient from './UserManagementClient';
 import {KeyType, SignerModule} from './SignerModule';
+import {encryptWithDerivedPublicKey} from './utils';
+import {
+  encryptedKeyshare,
+  EncryptorType,
+} from '@usecapsule/user-management-client';
 
 const TAG = 'Capsule/CapsuleSigner';
+
+export async function sendShares(
+  userId: string,
+  walletId: string,
+  encryptedShares: encryptedKeyshare[]
+): Promise<string> {
+  const capsuleShare = await userManagementClient.getCapsuleShare(
+    userId,
+    walletId
+  );
+  const recoveryPrivateKeyContainer = new KeyContainer(
+    walletId,
+    capsuleShare.data.signer.signer,
+    '' // TODO: add in if needed
+  );
+  await userManagementClient.uploadKeyshares(userId, walletId, [
+    ...encryptedShares,
+  ]);
+  console.log('recovery:');
+  console.log(JSON.stringify(recoveryPrivateKeyContainer));
+  return JSON.stringify(recoveryPrivateKeyContainer);
+  // TODO: add functionality to email recovery or distribute it somehow
+  // distribute recovery right here
+}
+
+export async function distributeNewShare(
+  userId: string,
+  walletId: string,
+  userShare: string
+): Promise<string> {
+  const publicKeysRes = await userManagementClient.getSessionPublicKeys(userId);
+  const biometricEncryptedShares = publicKeysRes.data.keys
+    .map((key: any) => {
+      if (!key.publicKey) {
+        return;
+      }
+      const {
+        encryptedMessageHex,
+        encryptedKeyHex,
+      } = encryptWithDerivedPublicKey(key.sigDerivedPublicKey, userShare);
+      return {
+        encryptedShare: encryptedMessageHex,
+        encryptedKey: encryptedKeyHex,
+        type: KeyType.USER,
+        encryptor: EncryptorType.BIOMETRICS,
+        biometricPublicKey: key.sigDerivedPublicKey,
+      };
+    })
+    .filter(Boolean);
+  return await sendShares(userId, walletId, biometricEncryptedShares);
+}
 
 /**
  * CapsuleBaseSigner is the abstract class for managing Capsule accounts.
@@ -62,17 +118,17 @@ export abstract class CapsuleBaseSigner {
    * server. This will result in the new keyshare persisted
    * on the device. The recovery keyshare is provided through the callback,
    * `onRecoveryKeyshare`.
-   * @param onRecoveryKeyshare The callback that will be passed the recovery
-   * share. This can be used to securely send the recovery keyshare to the
-   * users email or cloud backup.
+   // * @param onRecoveryKeyshare The callback that will be passed the recovery
+   // * share. This can be used to securely send the recovery keyshare to the
+   // * users email or cloud backup.
    * @returns Account address.
    * @category Public
    */
-  public async generateKeyshare(
-    onRecoveryKeyshare: (keyshare: string) => void
-  ): Promise<string> {
+  public async generateKeyshare(): // onRecoveryKeyshare: (keyshare: string) => void
+  Promise<string> {
     const walletInfo = await requestAndReauthenticate(
-      () => userManagementClient.createWallet(this.userId),
+      () =>
+        userManagementClient.createWallet(this.userId, {useTwoSigners: true}),
       this.ensureSessionActive
     );
     const keyshares = await Promise.all([
@@ -82,23 +138,27 @@ export abstract class CapsuleBaseSigner {
         KeyType.USER,
         this.userId
       ),
-      this.getSignerModule().createAccount(
-        walletInfo.walletId,
-        walletInfo.protocolId,
-        KeyType.RECOVERY,
-        this.userId
-      ),
+      // this.getSignerModule().createAccount(
+      //   walletInfo.walletId,
+      //   walletInfo.protocolId,
+      //   KeyType.RECOVERY,
+      //   this.userId
+      // ),
     ]);
-
     const userPrivateKeyshare = keyshares[0];
-    const recoveryPrivateKeyShare = keyshares[1];
 
-    return this.encryptAndUploadKeys(
-      userPrivateKeyshare,
-      recoveryPrivateKeyShare,
-      walletInfo.walletId,
-      onRecoveryKeyshare
+    // await distributeNewShare(this.userId, walletInfo.walletId, userPrivateKeyshare); TODO
+    // const recoveryPrivateKeyShare = keyshares[1];
+    const userAddress = normalizeAddressWith0x(
+      await this.getSignerModule().getAddress(userPrivateKeyshare)
     );
+    return userAddress;
+    // return this.encryptAndUploadKeys(
+    //   userPrivateKeyshare,
+    //   // recoveryPrivateKeyShare,
+    //   walletInfo.walletId,
+    //   // onRecoveryKeyshare
+    // );
   }
 
   /**
@@ -138,21 +198,21 @@ export abstract class CapsuleBaseSigner {
         recoveryKeyContainer.keyshare,
         this.userId
       ),
-      this.getSignerModule().refresh(
-        refreshResult.data.protocolId,
-        userKeyContainer.keyshare,
-        this.userId
-      ),
+      // this.getSignerModule().refresh(
+      //   refreshResult.data.protocolId,
+      //   userKeyContainer.keyshare,
+      //   this.userId
+      // ),
     ]);
 
     const userPrivateKeyshare = keyshares[0];
-    const recoveryPrivateKeyShare = keyshares[1];
+    // const recoveryPrivateKeyShare = keyshares[1];
 
     return this.encryptAndUploadKeys(
       userPrivateKeyshare,
-      recoveryPrivateKeyShare,
-      userKeyContainer.walletId,
-      onRecoveryKeyshare
+      // recoveryPrivateKeyShare,
+      userKeyContainer.walletId
+      // onRecoveryKeyshare
     );
   }
 
@@ -323,9 +383,9 @@ export abstract class CapsuleBaseSigner {
    * Encrypts the user and recovery share using the asymmetric encryption keys
    * and uploads it to the Capsule server. Stores the user keyshare locally.
    * @param userKeyshare The user keyshare.
-   * @param recoveryKeyshare The recovery keyshare.
+   // * @param recoveryKeyshare The recovery keyshare.
    * @param walletId The walletId registered with Capsule.
-   * @param onRecoveryKeyshare The callback that will be passed the recovery
+   // * @param onRecoveryKeyshare The callback that will be passed the recovery
    * share. This can be used to securely send the recovery keyshare to the
    * users email or cloud backup.
    * @returns The account address.
@@ -333,36 +393,34 @@ export abstract class CapsuleBaseSigner {
    */
   private async encryptAndUploadKeys(
     userKeyshare: string,
-    recoveryKeyshare: string,
-    walletId: string,
-    onRecoveryKeyshare: (keyshare: string) => void
+    // recoveryKeyshare: string,
+    walletId: string
+    // onRecoveryKeyshare: (keyshare: string) => void
   ): Promise<string> {
     const userAddress = normalizeAddressWith0x(
       await this.getSignerModule().getAddress(userKeyshare)
     );
-    const recoveryAddress = normalizeAddressWith0x(
-      await this.getSignerModule().getAddress(userKeyshare)
-    );
+    // const recoveryAddress = normalizeAddressWith0x(
+    //   await this.getSignerModule().getAddress(userKeyshare)
+    // );
     const userKeyContainer = new KeyContainer(
       walletId,
       userKeyshare,
       userAddress
     );
-    const recoveryPrivateKeyContainer = new KeyContainer(
-      walletId,
-      recoveryKeyshare,
-      recoveryAddress
-    );
-    const serializedRecovery = JSON.stringify(recoveryPrivateKeyContainer);
-    const serializedUser = JSON.stringify(userKeyContainer);
+    // const recoveryPrivateKeyContainer = new KeyContainer(
+    //   walletId,
+    //   recoveryKeyshare,
+    //   recoveryAddress
+    // );
+    // const serializedRecovery = JSON.stringify(recoveryPrivateKeyContainer);
+    // const serializedUser = JSON.stringify(userKeyContainer);
     // Create a user backup that can be decrypted by recovery
-    const encryptedUserBackup = recoveryPrivateKeyContainer.encryptForSelf(
-      serializedUser
-    );
+    // const encryptedUserBackup =
+    //   recoveryPrivateKeyContainer.encryptForSelf(serializedUser);
     // Create a recovery backup that can be decrypted by user
-    const encryptedRecoveryBackup = userKeyContainer.encryptForSelf(
-      serializedRecovery
-    );
+    // const encryptedRecoveryBackup =
+    //   userKeyContainer.encryptForSelf(serializedRecovery);
 
     // Upload the encrypted keyshares to Capsule server
     await requestAndReauthenticate(
@@ -386,7 +444,7 @@ export abstract class CapsuleBaseSigner {
     // fully created accounts on the device
     await this.setKeyContainer(userAddress, userKeyContainer);
 
-    await onRecoveryKeyshare?.(serializedRecovery);
+    // await onRecoveryKeyshare?.(serializedRecovery);
     return userAddress;
   }
 
