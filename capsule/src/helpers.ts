@@ -1,5 +1,6 @@
-import { ensureLeading0x } from '@celo/base/lib/address';
+import {ensureLeading0x} from '@celo/base/lib/address';
 import userManagementClient from './UserManagementClient';
+import {portalBase} from './config';
 
 /**
  * Used to convert hex to base64 string.
@@ -35,6 +36,44 @@ export async function requestAndReauthenticate<T>(
     await reauthenticate();
     return await request();
   }
+}
+
+export function getWebAuthURLForCreate(
+  webAuthId: string,
+  userId: string,
+  email: string,
+  partnerId?: string
+): string {
+  const partnerIdQueryParam = partnerId ? `&partnerId=${partnerId}` : '';
+  return `${portalBase}/web/users/${userId}/biometrics/${webAuthId}?email=${encodeURIComponent(
+    email
+  )}${partnerIdQueryParam}`;
+}
+
+export function getWebAuthURLForLogin(
+  sessionId: string,
+  loginEncryptionPublicKey: string,
+  email: string,
+  partnerId?: string
+): string {
+  const partnerIdQueryParam = partnerId ? `&partnerId=${partnerId}` : '';
+  return `${portalBase}/web/biometrics/login?email=${encodeURIComponent(
+    email
+  )}&sessionId=${sessionId}&encryptionKey=${loginEncryptionPublicKey}${partnerIdQueryParam}`;
+}
+
+const BIOMETRIC_VERIFICATION_TIME_MS = 15 * 60 * 1000;
+
+function biometricVerifiedRecently(verifiedAt: number): boolean {
+  return Date.now() - verifiedAt <= BIOMETRIC_VERIFICATION_TIME_MS;
+}
+
+export async function isSessionActive(): Promise<boolean> {
+  const res = await userManagementClient.touchSession();
+  return (
+    res.data.biometricVerifiedAt &&
+    biometricVerifiedRecently(res.data.biometricVerifiedAt)
+  );
 }
 
 const {

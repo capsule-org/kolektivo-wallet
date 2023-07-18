@@ -22,6 +22,7 @@ import { waitUntilSagasFinishLoading } from 'src/redux/sagas'
 import { persistor, store } from 'src/redux/store'
 import Logger from 'src/utils/Logger'
 import '@usecapsule/react-native-wallet/test/quasitests'
+import SplashScreen from 'react-native-splash-screen'
 Logger.debug('App/init', 'Current Language: ' + i18n.language)
 
 const ignoreWarnings = [

@@ -1,14 +1,14 @@
 // function uploadKeyshare(wallet: CapsuleBaseWallet, address: string) {
-import { CapsuleBaseWallet } from './CapsuleWallet';
-import { randomBytes } from 'crypto';
-import { ec as EC } from 'elliptic';
+import {CapsuleBaseWallet} from './CapsuleWallet';
+import {randomBytes} from 'crypto';
+import {ec as EC} from 'elliptic';
 import {
   Decrypt as ECIESDecrypt,
   Encrypt as ECIESEncrypt,
 } from '@celo/utils/lib/ecies';
-import { KeyContainer } from './KeyContainer';
+import {KeyContainer} from './KeyContainer';
 import userManagementClient from './UserManagementClient';
-import { requestAndReauthenticate } from './helpers';
+import {requestAndReauthenticate} from './helpers';
 
 export async function uploadKeyshare(
   wallet: CapsuleBaseWallet,
@@ -28,11 +28,11 @@ export async function uploadKeyshare(
     'base64'
   );
 
-  const { walletId } = KeyContainer.import(share);
+  const {walletId} = KeyContainer.import(share);
   // We access private field and method,
   // because we don't want to expose them to users
   // @ts-ignore
-  const userID = await wallet.getUserId();
+  const [userID] = await wallet.getUserId();
 
   const result = await requestAndReauthenticate(
     () =>

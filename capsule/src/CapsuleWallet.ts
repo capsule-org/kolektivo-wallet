@@ -69,7 +69,7 @@ export abstract class CapsuleBaseWallet {
    * Should return the userId from wherever it's stored.
    * @protected
    */
-  protected abstract getUserId(): Promise<string>;
+  protected abstract getUserId(): Promise<[string, string]>;
 
   // ------------- Public methods -------------
 
@@ -78,8 +78,8 @@ export abstract class CapsuleBaseWallet {
    * Requires userId to be initialized.
    * @category Public
    */
-  public async initSessionManagement() {
-    await this.initSessionManagerIfNeeded();
+  public async initSessionManagement(webauth = false) {
+    await this.initSessionManagerIfNeeded(webauth);
     await this.sessionManager!.setSessionKey();
   }
 
@@ -136,17 +136,16 @@ export abstract class CapsuleBaseWallet {
    * is imported to the wallet. This will result in the new keyshare persisted
    * on the device. The recovery keyshare is provided through the callback,
    * `onRecoveryKeyshare`.
-   * @param onRecoveryKeyshare The callback that will be passed the recovery
-   * share. This can be used to securely send the recovery keyshare to the
-   * users email or cloud backup.
+   // * @param onRecoveryKeyshare The callback that will be passed the recovery
+   // * share. This can be used to securely send the recovery keyshare to the
+   // * users email or cloud backup.
    * @category Public
    */
-  public async createAccount(
-    onRecoveryKeyshare: (keyshare: string) => void
-  ): Promise<string> {
+  public async createAccount(): // onRecoveryKeyshare: (keyshare: string) => void
+  Promise<string> {
     logger.info(`${TAG}@addAccount`, `Creating a new account`);
     const signer = await this.getSigner();
-    const address = await signer.generateKeyshare(onRecoveryKeyshare);
+    const address = await signer.generateKeyshare();
 
     logger.info(`${TAG}@addAccount`, `Keyshare succesfully created`);
     await this.signersStorage.addAccountInternal(address);
@@ -217,7 +216,7 @@ export abstract class CapsuleBaseWallet {
     const recoveryKeyshare = KeyContainer.import(rawRecoveryKeyshare);
     const {walletId} = recoveryKeyshare;
 
-    const userId = await this.getUserId();
+    const [userId] = await this.getUserId();
     const result = await requestAndReauthenticate(
       () => userManagementClient.getKeyshare(userId, walletId, KeyType.USER),
       () => this.ensureSessionActive()
@@ -340,7 +339,7 @@ export abstract class CapsuleBaseWallet {
    */
   private async getSigner(): Promise<CapsuleBaseSigner> {
     if (!this.signer) {
-      const userId = await this.getUserId();
+      const [userId] = await this.getUserId();
       this.signer = await this.getCapsuleSigner(userId, () =>
         this.ensureSessionActive()
       );
@@ -352,15 +351,17 @@ export abstract class CapsuleBaseWallet {
    * We initialize the manager late to ensure the userID is available.
    * @category Private
    */
-  private async initSessionManagerIfNeeded() {
+  private async initSessionManagerIfNeeded(webauth = false) {
     if (!this.sessionManager) {
-      const userId = await this.getUserId();
+      const [userId, email] = await this.getUserId();
       if (!userId) {
         throw Error('UserId not available during initializing session key');
       }
       this.sessionManager = new SessionManager(
         userId,
-        this.getChallengeStorage(userId)
+        email,
+        this.getChallengeStorage(userId),
+        webauth
       );
     }
   }
