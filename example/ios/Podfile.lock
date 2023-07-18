@@ -1,6 +1,6 @@
 PODS:
   - boost (1.76.0)
-  - capsule-react-native-wallet (0.1.13):
+  - capsule-react-native-wallet (0.1.14):
     - React-Core
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
@@ -494,7 +494,7 @@ PODS:
     - React-jsi (= 0.72.0)
     - React-logger (= 0.72.0)
     - React-perflogger (= 0.72.0)
-  - RNCAsyncStorage (1.18.2):
+  - RNCAsyncStorage (1.19.0):
     - React-Core
   - RNKeychain (8.0.0):
     - React-Core
@@ -509,7 +509,7 @@ PODS:
 
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
-  - "capsule-react-native-wallet (from `../node_modules/@usecapsule/react-native-wallet`)"
+  - capsule-react-native-wallet (from `../../capsule`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
@@ -602,7 +602,7 @@ EXTERNAL SOURCES:
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
   capsule-react-native-wallet:
-    :path: "../node_modules/@usecapsule/react-native-wallet"
+    :path: "../../capsule"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   FBLazyVector:
@@ -699,7 +699,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: 57d2868c099736d80fcd648bf211b4431e51a558
-  capsule-react-native-wallet: 58dffc4d360fc24d25a1c927c726b7400e21e608
+  capsule-react-native-wallet: 40fb275f8b15597450a263911fbebcb4b851b9f1
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   FBLazyVector: bb17efca94c43508cbe54fb0a35e36df30da5213
@@ -753,7 +753,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: 24614bcd31643eacb06c78c0b9101b453d6aac47
   React-utils: c12d2e75c8bbc727939ddc4319ed95493395ed5a
   ReactCommon: 517b45ed311ba9146aa8b55a8ef6617425f7448e
-  RNCAsyncStorage: ddc4ee162bfd41b0d2c68bf2d95acd81dd7f1f93
+  RNCAsyncStorage: 4b98ac3c64efa4e35c1197cb0c5ca5e9f5d4c666
   RNKeychain: 4f63aada75ebafd26f4bc2c670199461eab85d94
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
