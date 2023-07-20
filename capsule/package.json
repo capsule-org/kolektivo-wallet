@@ -35,7 +35,7 @@
     "prepack": "bob build",
     "release": "release-it",
     "example": "yarn --cwd example",
-    "bootstrap": "yarn example && yarn install && yarn example pods",
+    "bootstrap": "yarn install",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build",
     "docs": "npx typedoc --plugin typedoc-plugin-markdown --excludePrivate --includeVersion --out docs src/CapsuleWallet.ts src/CapsuleSigner.ts",
     "docs:react": "npx typedoc --plugin typedoc-plugin-markdown --excludePrivate --includeVersion --out docs/react-native src/react-native/*",
@@ -76,6 +76,7 @@
     "react": "18.2.0",
     "react-native": "0.71.1",
     "react-native-builder-bob": "^0.20.0",
+    "react-native-inappbrowser-reborn": "^3.7.0",
     "release-it": "^15.0.0",
     "typedoc": "0.23.24",
     "typedoc-plugin-markdown": "3.14.0",
@@ -87,7 +88,7 @@
     "@celo/utils": "1.5.2"
   },
   "dependencies": {
-    "@capsule/client": "capsule-org/user-management-client",
+    "@usecapsule/user-management-client": "^0.3.0",
     "@celo/base": "1.2.0",
     "@celo/client": "0.0.355",
     "@celo/connect": "~1.2.0",

@@ -1,5 +1,5 @@
-import Client from '@capsule/client/client';
-import { userManagementServer } from './config';
+import Client from '@usecapsule/user-management-client';
+import {userManagementServer} from './config';
 
 const userManagementClient = new Client({
   userManagementHost: userManagementServer,

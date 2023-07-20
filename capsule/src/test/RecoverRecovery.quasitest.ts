@@ -16,10 +16,10 @@ export const recoverRecoveryShare = async () => {
   await userManagementClient.verifyEmail(userId, {
     verificationCode: '123456',
   });
-  await AsyncStorage.setItem(USER_ID_TAG, userId);
+  await AsyncStorage.setItem(USER_ID_TAG, userId + '|' + email);
 
   const wallet = new ReactNativeCapsuleWallet();
-  await wallet.initSessionManagement();
+  await wallet.initSessionManagement(true);
   await wallet.init();
 
   let recoveryShare = '';
